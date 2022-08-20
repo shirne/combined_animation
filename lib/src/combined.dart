@@ -76,6 +76,7 @@ class _CombinedAnimationState extends State<CombinedAnimation>
   @override
   void dispose() {
     animation.removeListener(_onAnimation);
+    animation.dispose();
     super.dispose();
   }
 
