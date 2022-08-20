@@ -181,6 +181,29 @@ class AnimationConfig {
     );
   }
 
+  /// Creates a copy of this config
+  /// but with the given fields replaced with the new values.
+  AnimationConfig copyWith({
+    AlignmentGeometry? alignStart,
+    AlignmentGeometry? alignEnd,
+    double? opacityStart,
+    double? opacityEnd,
+    Matrix4? transformStart,
+    Matrix4? transformEnd,
+    Duration? duration,
+    Curve? curve,
+  }) =>
+      AnimationConfig(
+        alignStart: alignStart ?? this.alignStart,
+        alignEnd: alignEnd ?? this.alignEnd,
+        opacityStart: opacityStart ?? this.opacityStart,
+        opacityEnd: opacityEnd ?? this.opacityEnd,
+        transformStart: transformStart ?? this.transformStart,
+        transformEnd: transformEnd ?? this.transformEnd,
+        duration: duration ?? this.duration,
+        curve: curve ?? this.curve,
+      );
+
   double _lerpValue(double start, double end, double value) {
     return start + (end - start) * value;
   }
