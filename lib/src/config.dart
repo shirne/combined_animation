@@ -1,22 +1,24 @@
 import 'package:flutter/widgets.dart';
 
+/// How to create a snapshot
 enum AnimationType {
   start,
   end,
 }
 
+/// A snapshot of an animation config
 class AnimationSnapshot {
-  final Matrix4? matrix;
+  final Matrix4? transform;
   final double? opacity;
-  final Alignment? alignment;
+  final AlignmentGeometry? alignment;
   AnimationSnapshot({
-    this.matrix,
+    this.transform,
     this.opacity,
     this.alignment,
   });
 
   Map<String, dynamic> toJson() => {
-        'matrix': matrix,
+        'transform': transform,
         'opacity': opacity,
         'alignment': alignment,
       };
@@ -24,54 +26,84 @@ class AnimationSnapshot {
   String toString() => toJson().toString();
 }
 
-/// Toast animation config
+/// Animation config
 class AnimationConfig {
+  /// From out top to center
   static const slideIn = AnimationConfig(
-    alignStart: Alignment(0, 1),
+    alignStart: Alignment(0, -2),
     alignEnd: Alignment(0, 0),
-    curve: Curves.easeIn,
-  );
-  static const slideOut = AnimationConfig(
-    alignStart: Alignment(0, 0),
-    alignEnd: Alignment(0, 1),
-    curve: Curves.easeOut,
+    curve: Curves.easeOutQuad,
   );
 
+  /// From center to out top
+  static const slideOut = AnimationConfig(
+    alignStart: Alignment(0, 0),
+    alignEnd: Alignment(0, -2),
+    curve: Curves.easeOutQuad,
+  );
+
+  /// From out top to center with fade in
+  static const slideAndFadeIn = AnimationConfig(
+    alignStart: Alignment(0, -2),
+    alignEnd: Alignment(0, 0),
+    opacityStart: 0,
+    opacityEnd: 1,
+    curve: Curves.easeOutQuad,
+  );
+
+  /// From center to out top with fade out
+  static const slideAndFadeOut = AnimationConfig(
+    alignStart: Alignment(0, 0),
+    alignEnd: Alignment(0, -2),
+    opacityStart: 1,
+    opacityEnd: 0,
+    curve: Curves.easeOutQuad,
+  );
+
+  /// Fade in
   static const fadeIn = AnimationConfig(
     opacityStart: 0,
     opacityEnd: 1,
-    curve: Curves.easeIn,
+    curve: Curves.easeOutQuad,
   );
+
+  /// Fade out
   static const fadeOut = AnimationConfig(
     opacityStart: 1,
     opacityEnd: 0,
-    curve: Curves.easeOut,
+    curve: Curves.easeOutQuad,
   );
 
+  /// Zoom in
   static final zoomIn = AnimationConfig(
-    matrixStart: Matrix4.identity()..scale(0.5),
-    matrixEnd: Matrix4.identity(),
-    curve: Curves.easeIn,
+    transformStart: Matrix4.identity()..scale(0.0),
+    transformEnd: Matrix4.identity(),
+    curve: Curves.easeOutQuad,
   );
+
+  /// Zoom out
   static final zoomOut = ~zoomIn;
 
+  /// Zoom in with fade in
   static final fadeAndZoomIn = AnimationConfig(
     opacityStart: 0,
     opacityEnd: 1,
-    matrixStart: Matrix4.identity()..scale(0.7),
-    matrixEnd: Matrix4.identity(),
-    curve: Curves.easeIn,
+    transformStart: Matrix4.identity()..scale(0.5),
+    transformEnd: Matrix4.identity(),
+    curve: Curves.easeOutQuad,
   );
 
+  /// Zoom out with fade out
   static final fadeAndZoomOut = ~fadeAndZoomIn;
 
+  /// All paired params must be provided or null.
   const AnimationConfig({
     this.alignStart,
     this.alignEnd,
     this.opacityStart,
     this.opacityEnd,
-    this.matrixStart,
-    this.matrixEnd,
+    this.transformStart,
+    this.transformEnd,
     this.duration,
     this.curve,
   })  : assert(
@@ -83,25 +115,26 @@ class AnimationConfig {
                 (opacityStart == null && opacityEnd == null),
             'Opacity animation need start and end non null'),
         assert(
-            (matrixStart != null && matrixEnd != null) ||
-                (matrixStart == null && matrixEnd == null),
-            'Matrix animation need start and end non null');
+            (transformStart != null && transformEnd != null) ||
+                (transformStart == null && transformEnd == null),
+            'Transform animation need start and end non null');
 
-  final Alignment? alignStart;
-  final Alignment? alignEnd;
+  /// alignment
+  final AlignmentGeometry? alignStart;
+  final AlignmentGeometry? alignEnd;
 
   final double? opacityStart;
   final double? opacityEnd;
 
-  final Matrix4? matrixStart;
-  final Matrix4? matrixEnd;
+  final Matrix4? transformStart;
+  final Matrix4? transformEnd;
 
   final Duration? duration;
   final Curve? curve;
 
   bool get hasAlign => alignStart != null;
   bool get hasOpacity => opacityStart != null;
-  bool get hasMatrix => matrixStart != null;
+  bool get hasMatrix => transformStart != null;
 
   /// Generate a snapshot of current animation [value]
   AnimationSnapshot snapshot(
@@ -113,14 +146,14 @@ class AnimationConfig {
     }
     if (value == 0) {
       return AnimationSnapshot(
-        matrix: matrixStart,
+        transform: transformStart,
         alignment: alignStart,
         opacity: opacityStart,
       );
     }
     if (value == 1) {
       return AnimationSnapshot(
-        matrix: matrixEnd,
+        transform: transformEnd,
         alignment: alignEnd,
         opacity: opacityEnd,
       );
@@ -129,29 +162,26 @@ class AnimationConfig {
     if (hasMatrix) {
       matrix4 = Matrix4.fromList(List.generate(
         16,
-        (idx) => combineValue(matrixStart![idx], matrixEnd![idx], value),
+        (idx) => _lerpValue(transformStart![idx], transformEnd![idx], value),
       ));
     }
     double? opacity;
     if (hasOpacity) {
-      opacity = combineValue(opacityStart!, opacityEnd!, value);
+      opacity = _lerpValue(opacityStart!, opacityEnd!, value);
     }
-    Alignment? alignment;
+    AlignmentGeometry? alignment;
     if (hasAlign) {
-      alignment = Alignment(
-        combineValue(alignStart!.x, alignEnd!.x, value),
-        combineValue(alignStart!.y, alignEnd!.y, value),
-      );
+      alignment = AlignmentGeometry.lerp(alignStart!, alignEnd!, value);
     }
 
     return AnimationSnapshot(
-      matrix: matrix4,
+      transform: matrix4,
       alignment: alignment,
       opacity: opacity,
     );
   }
 
-  double combineValue(double start, double end, double value) {
+  double _lerpValue(double start, double end, double value) {
     return start + (end - start) * value;
   }
 
@@ -162,8 +192,8 @@ class AnimationConfig {
       alignEnd: alignEnd ?? other.alignEnd,
       opacityStart: opacityStart ?? other.opacityStart,
       opacityEnd: opacityEnd ?? other.opacityEnd,
-      matrixStart: matrixStart ?? other.matrixStart,
-      matrixEnd: matrixEnd ?? other.matrixEnd,
+      transformStart: transformStart ?? other.transformStart,
+      transformEnd: transformEnd ?? other.transformEnd,
       duration: (duration?.compareTo(other.duration ?? Duration.zero) ?? 0) > 0
           ? duration
           : other.duration,
@@ -178,20 +208,21 @@ class AnimationConfig {
       alignEnd: alignStart,
       opacityStart: opacityEnd,
       opacityEnd: opacityStart,
-      matrixStart: matrixEnd,
-      matrixEnd: matrixStart,
+      transformStart: transformEnd,
+      transformEnd: transformStart,
       duration: duration,
-      curve: curve?.flipped,
+      curve: curve, // No need for flip, value will be flip
     );
   }
 
+  /// To json
   Map<String, dynamic> toJson() => {
         'alignStart': alignStart,
         'alignEnd': alignEnd,
         'opacityStart': opacityStart,
         'opacityEnd': opacityEnd,
-        'matrixStart': matrixStart,
-        'matrixEnd': matrixEnd,
+        'transformStart': transformStart,
+        'transformEnd': transformEnd,
         'duration': duration,
         'curve': curve,
       };

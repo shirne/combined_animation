@@ -1,6 +1,7 @@
 import 'package:combined_animation/src/config.dart';
 import 'package:flutter/cupertino.dart';
 
+/// Combine state of [CombinedAnimation]
 enum CombineState {
   beginIn,
   endIn,
@@ -8,6 +9,9 @@ enum CombineState {
   endOut,
 }
 
+const _defaultDuration = Duration(milliseconds: 300);
+
+/// A combined animation to show in or hide out a widget
 class CombinedAnimation extends StatefulWidget {
   const CombinedAnimation({
     Key? key,
@@ -15,17 +19,30 @@ class CombinedAnimation extends StatefulWidget {
     AnimationConfig? outConfig,
     required this.child,
     AnimationType state = AnimationType.start,
+    this.onEndIn,
+    this.onEndOut,
   })  : outConfig = outConfig ?? ~config,
         state = state == AnimationType.start
             ? CombineState.beginIn
             : CombineState.beginOut,
         super(key: key);
 
+  /// Show in animation config
   final AnimationConfig config;
+
+  /// Hide out animation config. defaults to flip [config]
   final AnimationConfig outConfig;
 
+  /// State to pass in
   final CombineState state;
 
+  /// Callback when show in animation is complete
+  final VoidCallback? onEndIn;
+
+  /// Callback when hide out animation is complete
+  final VoidCallback? onEndOut;
+
+  /// The child will be animate
   final Widget child;
 
   @override
@@ -43,26 +60,41 @@ class _CombinedAnimationState extends State<CombinedAnimation>
     super.initState();
     snapshot = widget.config.snapshot(0);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      animation.animateTo(
+      animation
+          .animateTo(
         1,
-        duration: widget.config.duration,
+        duration: widget.config.duration ?? _defaultDuration,
         curve: widget.config.curve ?? Curves.easeIn,
-      );
+      )
+          .whenComplete(() {
+        widget.onEndIn?.call();
+      });
     });
     animation.addListener(_onAnimation);
   }
 
   @override
+  void dispose() {
+    animation.removeListener(_onAnimation);
+    super.dispose();
+  }
+
+  /// Update state and animate to hide out
+  @override
   void didUpdateWidget(covariant CombinedAnimation oldWidget) {
+    super.didUpdateWidget(oldWidget);
     if (widget.state == CombineState.beginOut &&
         widget.state.index > oldWidget.state.index) {
-      animation.animateTo(
-        1,
-        duration: widget.config.duration,
+      animation
+          .animateTo(
+        0,
+        duration: widget.config.duration ?? _defaultDuration,
         curve: widget.config.curve ?? Curves.easeOut,
-      );
+      )
+          .whenComplete(() {
+        widget.onEndOut?.call();
+      });
     }
-    super.didUpdateWidget(oldWidget);
   }
 
   void _onAnimation() {
@@ -76,8 +108,9 @@ class _CombinedAnimationState extends State<CombinedAnimation>
     Widget child = widget.child;
 
     if (widget.config.hasMatrix) {
-      Transform(
-        transform: snapshot.matrix!,
+      child = Transform(
+        transform: snapshot.transform!,
+        alignment: Alignment.center,
         child: widget.child,
       );
     }
