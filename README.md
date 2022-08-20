@@ -1,5 +1,11 @@
 <center>Combined Animation Widget</center>
 
+<center>
+
+[![pub package](https://img.shields.io/pub/v/combined_animation.svg)](https://pub.dartlang.org/packages/combined_animation)
+
+</center>
+
 A combined animation widget, contains alignment, opacity, transform for show in and hide out a widget.
 
 ## Features
