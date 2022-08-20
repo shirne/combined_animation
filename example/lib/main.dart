@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:combined_animation/combined_animation.dart';
 import 'package:flutter/material.dart';
@@ -33,31 +33,60 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final widgets = <Widget>[];
-  final configs = [
+  final configs = <AnimationConfig>[];
+  final keys = <int>[];
+  final configList = [
     AnimationConfig.slideIn,
     AnimationConfig.zoomIn,
     AnimationConfig.fadeIn,
     AnimationConfig.fadeAndZoomIn,
+    AnimationConfig(
+      transformStart: Matrix4.identity()..scale(0.0),
+      transformEnd: Matrix4.identity(),
+      curve: Curves.bounceOut,
+    ),
+    AnimationConfig(
+      transformStart: Matrix4.identity()..scale(0.5),
+      transformEnd: Matrix4.identity(),
+      opacityStart: 0,
+      opacityEnd: 1,
+      curve: Curves.bounceOut,
+    ),
+    AnimationConfig(
+      transformStart: Matrix4.identity()..rotateX(math.pi / 2),
+      transformEnd: Matrix4.identity(),
+      curve: Curves.bounceOut,
+    ),
+    AnimationConfig(
+      transformStart: Matrix4.identity()..rotateZ(math.pi / 2),
+      transformEnd: Matrix4.identity(),
+      curve: Curves.bounceOut,
+    ),
   ];
-  final random = Random(0);
-  final removes = [];
+  final random = math.Random(0);
+  final removes = <int>{};
 
   void _incrementCounter() {
     setState(() {
+      final index = widgets.length;
       widgets.add(Container(
         width: 100.0 + random.nextInt(100),
         height: 20.0 + random.nextInt(30),
         decoration: BoxDecoration(
           gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: [
-              Colors.primaries[widgets.length % 18],
-              Colors.primaries[(widgets.length + 1) % 18],
-              Colors.primaries[(widgets.length + 2) % 18],
+              Colors.primaries[index % 18],
+              Colors.primaries[(index + 1) % 18],
+              Colors.primaries[(index + 2) % 18],
             ],
           ),
           borderRadius: const BorderRadius.all(Radius.circular(10)),
         ),
       ));
+      configs.add(configList[index % configList.length]);
+      keys.add(index == 0 ? 0 : keys.last + 1);
     });
   }
 
@@ -72,35 +101,49 @@ class _MyHomePageState extends State<MyHomePage> {
           itemCount: widgets.length,
           itemBuilder: (context, index) {
             return Stack(
+              key: ValueKey<int>(keys[index]),
               children: [
                 Container(
                   alignment: Alignment.center,
-                  padding: const EdgeInsets.only(top: 16),
+                  height: configs[index].hasAlign ? 60 : null,
+                  padding: configs[index].hasAlign
+                      ? null
+                      : const EdgeInsets.symmetric(vertical: 8),
                   child: CombinedAnimation(
-                    config: configs[index % configs.length],
                     state: removes.contains(index)
                         ? AnimationType.end
                         : AnimationType.start,
                     onEndOut: () {
                       removes.remove(index);
                       widgets.removeAt(index);
+                      configs.removeAt(index);
+                      keys.removeAt(index);
                       setState(() {});
                     },
+                    config: configs[index],
                     child: widgets[index],
                   ),
                 ),
                 Positioned(
-                  right: 0,
-                  child: IconButton(
-                    onPressed: () {
-                      if (removes.contains(index)) return;
-                      setState(() {
-                        removes.add(index);
-                      });
-                    },
-                    icon: const Icon(Icons.remove),
+                  right: 8,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        shape: const StadiumBorder(),
+                      ),
+                      label: const Text('delete'),
+                      onPressed: () {
+                        if (removes.contains(index)) return;
+                        setState(() {
+                          removes.add(index);
+                        });
+                      },
+                      icon: const Icon(Icons.remove),
+                    ),
                   ),
-                )
+                ),
               ],
             );
           },
