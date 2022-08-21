@@ -100,7 +100,8 @@ class _MyHomePageState extends State<MyHomePage> {
         child: ListView.builder(
           itemCount: widgets.length,
           findChildIndexCallback: (key) {
-            return keys.indexOf(key as ValueKey<int>);
+            final index = keys.indexOf(key as ValueKey<int>);
+            return index > -1 ? index : null;
           },
           itemBuilder: (context, index) {
             return Stack(
