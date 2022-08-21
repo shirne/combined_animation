@@ -34,7 +34,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final widgets = <Widget>[];
   final configs = <AnimationConfig>[];
-  final keys = <int>[];
+  final keys = <ValueKey<int>>[];
   final configList = [
     AnimationConfig.slideIn,
     AnimationConfig.zoomIn,
@@ -86,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ));
       configs.add(configList[index % configList.length]);
-      keys.add(index == 0 ? 0 : keys.last + 1);
+      keys.add(ValueKey(index == 0 ? 0 : keys.last.value + 1));
     });
   }
 
@@ -99,9 +99,12 @@ class _MyHomePageState extends State<MyHomePage> {
       body: SafeArea(
         child: ListView.builder(
           itemCount: widgets.length,
+          findChildIndexCallback: (key) {
+            return keys.indexOf(key as ValueKey<int>);
+          },
           itemBuilder: (context, index) {
             return Stack(
-              key: ValueKey<int>(keys[index]),
+              key: keys[index],
               children: [
                 Container(
                   alignment: Alignment.center,

@@ -50,7 +50,7 @@ class CombinedAnimation extends StatefulWidget {
 }
 
 class _CombinedAnimationState extends State<CombinedAnimation>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin<CombinedAnimation> {
   late AnimationSnapshot snapshot;
 
   late final animation = AnimationController(vsync: this);
