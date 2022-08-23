@@ -35,7 +35,10 @@ CombinedAnimation(
     state: willRemove?
         ? AnimationType.end
         : AnimationType.start,
-    onEndOut: () {
+    onLeaved: (size) {
+        
+    },
+    onDissmiss:(){
         doRemove(item);
         setState(() {});
     },
@@ -44,3 +47,4 @@ CombinedAnimation(
 )
 ```
 
+## Produce

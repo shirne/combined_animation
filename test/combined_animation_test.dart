@@ -7,10 +7,10 @@ void main() {
   test('config', () {
     AnimationConfig config = AnimationConfig.fadeIn | AnimationConfig.zoomIn;
 
-    expect(config.opacityStart, 0);
-    expect(config.opacityEnd, 1);
-    expect(config.transformStart?[0], 0.5);
-    expect(config.transformEnd?[0], 1.0);
+    expect(config.startOpacity, 0);
+    expect(config.endOpacity, 1);
+    expect(config.startTransform?[0], 0.5);
+    expect(config.endTransform?[0], 1.0);
   });
 
   test('snapshot', () {

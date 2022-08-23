@@ -2,14 +2,20 @@ import 'package:combined_animation/src/config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+/// Only allow user to start or stop
+enum AnimationType {
+  start,
+  end,
+}
+
 /// Combine state of [CombinedAnimation]
 enum CombineState {
   init,
-  beginIn,
-  endIn,
-  beginOut,
-  endOut,
-  term,
+  beginEnter,
+  endEnter,
+  beginLeave,
+  endLeave,
+  dismiss,
 }
 
 const _defaultDuration = Duration(milliseconds: 300);
@@ -19,40 +25,41 @@ class CombinedAnimation extends StatefulWidget {
   const CombinedAnimation({
     Key? key,
     required this.config,
-    AnimationConfig? outConfig,
+    AnimationConfig? leaveConfig,
     required this.child,
     AnimationType? state = AnimationType.start,
-    this.slideDuration,
-    this.onEndIn,
-    this.onEndOut,
-    this.onRemove,
+    this.dismissDuration = _defaultDuration,
+    this.dismissCurve = Curves.easeOut,
+    this.onEntered,
+    this.onLeaved,
+    this.onDissmiss,
     this.autoSlide = true,
     this.isControlled = false,
-  })  : outConfig = outConfig ?? ~config,
+  })  : leaveConfig = leaveConfig ?? ~config,
         state = state == AnimationType.start
-            ? CombineState.beginIn
+            ? CombineState.beginEnter
             : state == AnimationType.end
-                ? CombineState.beginOut
+                ? CombineState.beginLeave
                 : CombineState.init,
         super(key: key);
 
-  /// Show in animation config
+  /// Enter animation config
   final AnimationConfig config;
 
-  /// Hide out animation config. defaults to flip [config]
-  final AnimationConfig outConfig;
+  /// Leave animation config. defaults to flip [config]
+  final AnimationConfig leaveConfig;
 
   /// State to pass in
   final CombineState state;
 
   /// Callback when show in animation is complete
-  final void Function(CombinedAnimationController)? onEndIn;
+  final void Function(CombinedAnimationController)? onEntered;
 
   /// Callback when hide out animation is complete
-  final Widget? Function(Size?)? onEndOut;
+  final Widget? Function(Size?)? onLeaved;
 
   /// Callback when size is Zero
-  final VoidCallback? onRemove;
+  final VoidCallback? onDissmiss;
 
   /// The child will be animate
   final Widget child;
@@ -63,33 +70,40 @@ class CombinedAnimation extends StatefulWidget {
   /// If is controlled, State will not update state from widget
   final bool isControlled;
 
-  final Duration? slideDuration;
+  /// animation to dismiss
+  final Duration dismissDuration;
+  final Curve dismissCurve;
 
   @override
   State<CombinedAnimation> createState() => _CombinedAnimationState();
 }
 
+/// AnimationController to control Animation State
 class CombinedAnimationController {
   const CombinedAnimationController._(this._state);
 
   final _CombinedAnimationState _state;
 
-  bool get isEntered => _state.state == CombineState.endIn;
+  bool get isEntered => _state.state == CombineState.endEnter;
 
-  bool get isLeaved => _state.state.index >= CombineState.endOut.index;
+  bool get isLeaved => _state.state.index >= CombineState.endLeave.index;
 
+  /// reset
   void init() {
     _state.init();
   }
 
+  /// stop animation
   void stop() {
     _state.stop();
   }
 
+  /// start enter animation
   void enter({Duration? duration}) {
     _state.enter(duration: duration);
   }
 
+  /// start leave animation
   void leave({Duration? duration}) {
     _state.leave(duration: duration);
   }
@@ -107,18 +121,19 @@ class _CombinedAnimationState extends State<CombinedAnimation>
   Size? size;
 
   bool get isEnter =>
-      state.index >= CombineState.beginIn.index &&
-      state.index >= CombineState.endIn.index;
+      state.index >= CombineState.beginEnter.index &&
+      state.index <= CombineState.endEnter.index;
+
   bool get isLeave =>
-      state.index >= CombineState.beginOut.index &&
-      state.index >= CombineState.endOut.index;
+      state.index >= CombineState.beginLeave.index &&
+      state.index <= CombineState.endLeave.index;
 
   @override
   void initState() {
     super.initState();
     snapshot = widget.config.snapshot(0);
     state = widget.state;
-    if (state == CombineState.beginIn) {
+    if (state == CombineState.beginEnter) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         enter();
       });
@@ -142,11 +157,11 @@ class _CombinedAnimationState extends State<CombinedAnimation>
 
   void enter({Duration? duration}) {
     if (!mounted) return;
-    if (state.index < CombineState.endOut.index &&
-        state.index > CombineState.beginIn.index) {
+    if (state.index < CombineState.endLeave.index &&
+        state.index > CombineState.beginEnter.index) {
       return;
     }
-    state = CombineState.beginIn;
+    state = CombineState.beginEnter;
     animation
         .animateTo(
       1,
@@ -155,35 +170,39 @@ class _CombinedAnimationState extends State<CombinedAnimation>
     )
         .whenComplete(() {
       size = context.size;
-      state = CombineState.endIn;
-      widget.onEndIn?.call(CombinedAnimationController._(this));
+      state = CombineState.endEnter;
+      widget.onEntered?.call(CombinedAnimationController._(this));
     });
   }
 
   void leave({Duration? duration}) {
     if (!mounted) return;
-    if (state.index >= CombineState.beginOut.index) return;
-    state = CombineState.beginOut;
+    if (state.index >= CombineState.beginLeave.index) return;
+    state = CombineState.beginLeave;
     animation
         .animateTo(
       0,
-      duration: duration ?? widget.outConfig.duration ?? _defaultDuration,
-      curve: widget.outConfig.curve ?? Curves.easeOut,
+      duration: duration ?? widget.leaveConfig.duration ?? _defaultDuration,
+      curve: widget.leaveConfig.curve ?? Curves.easeOut,
     )
         .whenComplete(() {
-      state = CombineState.endOut;
+      state = CombineState.endLeave;
       size = context.size;
-      quitChild = widget.onEndOut?.call(context.size);
+      quitChild = widget.onLeaved?.call(context.size);
 
       WidgetsBinding.instance.scheduleFrameCallback((timeStamp) {
-        state = CombineState.term;
         if (size == null) {
-          widget.onRemove?.call();
+          state = CombineState.dismiss;
+          widget.onDissmiss?.call();
         } else {
           size = null;
           setState(() {});
-          Future.delayed(_defaultDuration)
-              .then((value) => widget.onRemove?.call());
+          Future.delayed(Duration(
+            milliseconds: widget.dismissDuration.inMilliseconds + 16,
+          )).then((value) {
+            state = CombineState.dismiss;
+            widget.onDissmiss?.call();
+          });
         }
       });
     });
@@ -201,34 +220,38 @@ class _CombinedAnimationState extends State<CombinedAnimation>
   void didUpdateWidget(covariant CombinedAnimation oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isControlled) return;
-    if (widget.state == CombineState.beginOut && state == CombineState.endIn) {
-      leave();
-    } else if (widget.state == CombineState.beginIn) {
+    if (widget.state == CombineState.beginLeave) {
+      if (state == CombineState.endEnter) {
+        leave();
+      }
+    } else if (widget.state == CombineState.beginEnter) {
       enter();
-    } else if (!animation.isAnimating) {
-      state = widget.state;
+    } else if (widget.state == CombineState.init &&
+        !animation.isAnimating &&
+        state == CombineState.dismiss) {
+      init();
     }
   }
 
   void _onAnimation() {
     setState(() {
-      snapshot = state.index > CombineState.endIn.index
-          ? widget.outConfig.snapshot(1 - animation.value)
+      snapshot = state.index > CombineState.endEnter.index
+          ? widget.leaveConfig.snapshot(1 - animation.value)
           : widget.config.snapshot(animation.value);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (state.index >= CombineState.endOut.index &&
+    if (state.index >= CombineState.endLeave.index &&
         widget.autoSlide &&
         (quitChild != null ||
-            !(widget.config.hasSize || widget.outConfig.hasSize))) {
-      print(
-          '$quitChild $state ${widget.slideDuration ?? _defaultDuration} $size');
+            !(widget.config.hasSize || widget.leaveConfig.hasSize))) {
       return quitChild ??
           AnimatedSize(
-            duration: widget.slideDuration ?? _defaultDuration,
+            duration: widget.dismissDuration,
+            curve: widget.dismissCurve,
+            alignment: Alignment.topCenter,
             child: SizedBox(
               width: size?.width ?? 0,
               height: size?.height ?? 0,
@@ -237,29 +260,29 @@ class _CombinedAnimationState extends State<CombinedAnimation>
     }
     Widget child = widget.child;
 
-    if (widget.config.hasMatrix || widget.outConfig.hasMatrix) {
+    if (widget.config.hasMatrix || widget.leaveConfig.hasMatrix) {
       child = Transform(
         transform: snapshot.transform ?? Matrix4.identity(),
         alignment: Alignment.center,
         child: widget.child,
       );
     }
-    if (widget.config.hasSize || widget.outConfig.hasSize) {
+    if (widget.config.hasSize || widget.leaveConfig.hasSize) {
       child = AnimatedSize(
         duration:
-            (isEnter ? widget.config.duration : widget.outConfig.duration) ??
+            (isEnter ? widget.config.duration : widget.leaveConfig.duration) ??
                 _defaultDuration,
         child: child,
       );
     }
-    if (widget.config.hasOpacity || widget.outConfig.hasOpacity) {
+    if (widget.config.hasOpacity || widget.leaveConfig.hasOpacity) {
       child = Opacity(
         opacity: snapshot.opacity ?? 1,
         child: child,
       );
     }
 
-    if (widget.config.hasAlign || widget.outConfig.hasAlign) {
+    if (widget.config.hasAlign || widget.leaveConfig.hasAlign) {
       child = Align(
         alignment: snapshot.alignment ?? Alignment.center,
         child: child,

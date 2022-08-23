@@ -2,12 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
-/// How to create a snapshot
-enum AnimationType {
-  start,
-  end,
-}
-
 /// A snapshot of an animation config
 class AnimationSnapshot {
   final Matrix4? transform;
@@ -32,67 +26,67 @@ class AnimationSnapshot {
 class AnimationConfig {
   /// From out top to center
   static const slideIn = AnimationConfig(
-    alignStart: Alignment(0, -3),
-    alignEnd: Alignment(0, 0),
+    startAlign: Alignment(0, -3),
+    endAlign: Alignment(0, 0),
     curve: Curves.easeOutQuad,
   );
 
   /// From center to out top
   static const slideOut = AnimationConfig(
-    alignStart: Alignment(0, 0),
-    alignEnd: Alignment(0, -3),
+    startAlign: Alignment(0, 0),
+    endAlign: Alignment(0, -3),
     curve: Curves.easeOutQuad,
   );
 
   static const slideDown = AnimationConfig(
-    sizeStart: Size.zero,
-    sizeEnd: Size.infinite,
+    startSize: Size.zero,
+    endSize: Size.infinite,
     curve: Curves.easeOutQuad,
   );
 
   /// From center to out top
   static const slideUp = AnimationConfig(
-    sizeStart: Size.infinite,
-    sizeEnd: Size.zero,
+    startSize: Size.infinite,
+    endSize: Size.zero,
     curve: Curves.easeOutQuad,
   );
 
   /// From out top to center with fade in
   static const slideAndFadeIn = AnimationConfig(
-    alignStart: Alignment(0, -3),
-    alignEnd: Alignment(0, 0),
-    opacityStart: 0,
-    opacityEnd: 1,
+    startAlign: Alignment(0, -3),
+    endAlign: Alignment(0, 0),
+    startOpacity: 0,
+    endOpacity: 1,
     curve: Curves.easeOutQuad,
   );
 
   /// From center to out top with fade out
   static const slideAndFadeOut = AnimationConfig(
-    alignStart: Alignment(0, 0),
-    alignEnd: Alignment(0, -3),
-    opacityStart: 1,
-    opacityEnd: 0,
+    startAlign: Alignment(0, 0),
+    endAlign: Alignment(0, -3),
+    startOpacity: 1,
+    endOpacity: 0,
     curve: Curves.easeOutQuad,
   );
 
   /// Fade in
   static const fadeIn = AnimationConfig(
-    opacityStart: 0,
-    opacityEnd: 1,
+    startOpacity: 0,
+    endOpacity: 1,
     curve: Curves.easeOutQuad,
   );
 
   /// Fade out
   static const fadeOut = AnimationConfig(
-    opacityStart: 1,
-    opacityEnd: 0,
+    startOpacity: 1,
+    endOpacity: 0,
     curve: Curves.easeOutQuad,
   );
 
   /// Zoom in
   static final zoomIn = AnimationConfig(
-    transformStart: Matrix4.identity()..scale(0.0),
-    transformEnd: Matrix4.identity(),
+    startTransform: Matrix4.identity()..scale(0.0),
+    endTransform: Matrix4.identity(),
     curve: Curves.easeOutQuad,
   );
 
@@ -101,10 +95,10 @@ class AnimationConfig {
 
   /// Zoom in with fade in
   static final fadeAndZoomIn = AnimationConfig(
-    opacityStart: 0,
-    opacityEnd: 1,
-    transformStart: Matrix4.identity()..scale(0.5),
-    transformEnd: Matrix4.identity(),
+    startOpacity: 0,
+    endOpacity: 1,
+    startTransform: Matrix4.identity()..scale(0.5),
+    endTransform: Matrix4.identity(),
     curve: Curves.easeOutQuad,
   );
 
@@ -112,16 +106,16 @@ class AnimationConfig {
   static final fadeAndZoomOut = ~fadeAndZoomIn;
 
   static final vFlipIn = AnimationConfig(
-    transformStart: Matrix4.identity()..rotateX(math.pi / 2),
-    transformEnd: Matrix4.identity(),
+    startTransform: Matrix4.identity()..rotateX(math.pi / 2),
+    endTransform: Matrix4.identity(),
     curve: Curves.easeOutQuad,
   );
 
   static final vFlipOut = ~vFlipIn;
 
   static final hFlipIn = AnimationConfig(
-    transformStart: Matrix4.identity()..rotateY(math.pi / 2),
-    transformEnd: Matrix4.identity(),
+    startTransform: Matrix4.identity()..rotateY(math.pi / 2),
+    endTransform: Matrix4.identity(),
     curve: Curves.easeOutQuad,
   );
 
@@ -129,31 +123,31 @@ class AnimationConfig {
 
   /// All paired params must be provided or null.
   const AnimationConfig({
-    this.alignStart,
-    this.alignEnd,
-    this.opacityStart,
-    this.opacityEnd,
-    this.transformStart,
-    this.transformEnd,
-    this.sizeStart,
-    this.sizeEnd,
+    this.startAlign,
+    this.endAlign,
+    this.startOpacity,
+    this.endOpacity,
+    this.startTransform,
+    this.endTransform,
+    this.startSize,
+    this.endSize,
     this.duration,
     this.curve,
   })  : assert(
-            (alignStart != null && alignEnd != null) ||
-                (alignStart == null && alignEnd == null),
+            (startAlign != null && endAlign != null) ||
+                (startAlign == null && endAlign == null),
             'Align animation need start and end non null'),
         assert(
-            (opacityStart != null && opacityEnd != null) ||
-                (opacityStart == null && opacityEnd == null),
+            (startOpacity != null && endOpacity != null) ||
+                (startOpacity == null && endOpacity == null),
             'Opacity animation need start and end non null'),
         assert(
-            (transformStart != null && transformEnd != null) ||
-                (transformStart == null && transformEnd == null),
+            (startTransform != null && endTransform != null) ||
+                (startTransform == null && endTransform == null),
             'Transform animation need start and end non null'),
         assert(
-            (sizeStart != null && sizeEnd != null) ||
-                (sizeStart == null && sizeEnd == null),
+            (startSize != null && endSize != null) ||
+                (startSize == null && endSize == null),
             'Transform animation need start and end non null');
 
   /// Quick create an enter config
@@ -165,14 +159,14 @@ class AnimationConfig {
     Duration? duration,
     Curve? curve,
   }) : this(
-          alignStart: align,
-          alignEnd: align == null ? null : Alignment.center,
-          opacityStart: opacity,
-          opacityEnd: opacity == null ? null : 1,
-          transformStart: transform,
-          transformEnd: transform == null ? null : Matrix4.identity(),
-          sizeStart: size,
-          sizeEnd: size == null ? null : Size.infinite,
+          startAlign: align,
+          endAlign: align == null ? null : Alignment.center,
+          startOpacity: opacity,
+          endOpacity: opacity == null ? null : 1,
+          startTransform: transform,
+          endTransform: transform == null ? null : Matrix4.identity(),
+          startSize: size,
+          endSize: size == null ? null : Size.infinite,
           duration: duration,
           curve: curve,
         );
@@ -186,72 +180,72 @@ class AnimationConfig {
     Duration? duration,
     Curve? curve,
   }) : this(
-          alignStart: align == null ? null : Alignment.center,
-          alignEnd: align,
-          opacityStart: opacity == null ? null : 1,
-          opacityEnd: opacity,
-          transformStart: transform == null ? null : Matrix4.identity(),
-          transformEnd: transform,
-          sizeStart: size == null ? null : Size.infinite,
-          sizeEnd: size,
+          startAlign: align == null ? null : Alignment.center,
+          endAlign: align,
+          startOpacity: opacity == null ? null : 1,
+          endOpacity: opacity,
+          startTransform: transform == null ? null : Matrix4.identity(),
+          endTransform: transform,
+          startSize: size == null ? null : Size.infinite,
+          endSize: size,
           duration: duration,
           curve: curve,
         );
 
   /// alignment
-  final AlignmentGeometry? alignStart;
-  final AlignmentGeometry? alignEnd;
+  final AlignmentGeometry? startAlign;
+  final AlignmentGeometry? endAlign;
 
   /// opacity
-  final double? opacityStart;
-  final double? opacityEnd;
+  final double? startOpacity;
+  final double? endOpacity;
 
   /// transform
-  final Matrix4? transformStart;
-  final Matrix4? transformEnd;
+  final Matrix4? startTransform;
+  final Matrix4? endTransform;
 
   /// size
-  final Size? sizeStart;
-  final Size? sizeEnd;
+  final Size? startSize;
+  final Size? endSize;
 
   final Duration? duration;
   final Curve? curve;
 
-  bool get hasAlign => alignStart != null;
-  bool get hasOpacity => opacityStart != null;
-  bool get hasMatrix => transformStart != null;
-  bool get hasSize => sizeStart != null;
+  bool get hasAlign => startAlign != null;
+  bool get hasOpacity => startOpacity != null;
+  bool get hasMatrix => startTransform != null;
+  bool get hasSize => startSize != null;
 
   /// Generate a snapshot of current animation [value]
   AnimationSnapshot snapshot(double value) {
     if (value == 0) {
       return AnimationSnapshot(
-        transform: transformStart,
-        alignment: alignStart,
-        opacity: opacityStart,
+        transform: startTransform,
+        alignment: startAlign,
+        opacity: startOpacity,
       );
     }
     if (value == 1) {
       return AnimationSnapshot(
-        transform: transformEnd,
-        alignment: alignEnd,
-        opacity: opacityEnd,
+        transform: endTransform,
+        alignment: endAlign,
+        opacity: endOpacity,
       );
     }
     Matrix4? matrix4;
     if (hasMatrix) {
       matrix4 = Matrix4.fromList(List.generate(
         16,
-        (idx) => _lerpValue(transformStart![idx], transformEnd![idx], value),
+        (idx) => _lerpValue(startTransform![idx], endTransform![idx], value),
       ));
     }
     double? opacity;
     if (hasOpacity) {
-      opacity = _lerpValue(opacityStart!, opacityEnd!, value);
+      opacity = _lerpValue(startOpacity!, endOpacity!, value);
     }
     AlignmentGeometry? alignment;
     if (hasAlign) {
-      alignment = AlignmentGeometry.lerp(alignStart!, alignEnd!, value);
+      alignment = AlignmentGeometry.lerp(startAlign!, endAlign!, value);
     }
 
     return AnimationSnapshot(
@@ -264,26 +258,26 @@ class AnimationConfig {
   /// Creates a copy of this config
   /// but with the given fields replaced with the new values.
   AnimationConfig copyWith({
-    AlignmentGeometry? alignStart,
-    AlignmentGeometry? alignEnd,
-    double? opacityStart,
-    double? opacityEnd,
-    Matrix4? transformStart,
-    Matrix4? transformEnd,
-    Size? sizeStart,
-    Size? sizeEnd,
+    AlignmentGeometry? startAlign,
+    AlignmentGeometry? endAlign,
+    double? startOpacity,
+    double? endOpacity,
+    Matrix4? startTransform,
+    Matrix4? endTransform,
+    Size? startSize,
+    Size? endSize,
     Duration? duration,
     Curve? curve,
   }) =>
       AnimationConfig(
-        alignStart: alignStart ?? this.alignStart,
-        alignEnd: alignEnd ?? this.alignEnd,
-        opacityStart: opacityStart ?? this.opacityStart,
-        opacityEnd: opacityEnd ?? this.opacityEnd,
-        transformStart: transformStart ?? this.transformStart,
-        transformEnd: transformEnd ?? this.transformEnd,
-        sizeStart: sizeStart ?? this.sizeStart,
-        sizeEnd: sizeEnd ?? this.sizeEnd,
+        startAlign: startAlign ?? this.startAlign,
+        endAlign: endAlign ?? this.endAlign,
+        startOpacity: startOpacity ?? this.startOpacity,
+        endOpacity: endOpacity ?? this.endOpacity,
+        startTransform: startTransform ?? this.startTransform,
+        endTransform: endTransform ?? this.endTransform,
+        startSize: startSize ?? this.startSize,
+        endSize: endSize ?? this.endSize,
         duration: duration ?? this.duration,
         curve: curve ?? this.curve,
       );
@@ -295,14 +289,14 @@ class AnimationConfig {
   /// Combine two config
   operator |(AnimationConfig other) {
     return AnimationConfig(
-      alignStart: alignStart ?? other.alignStart,
-      alignEnd: alignEnd ?? other.alignEnd,
-      opacityStart: opacityStart ?? other.opacityStart,
-      opacityEnd: opacityEnd ?? other.opacityEnd,
-      transformStart: transformStart ?? other.transformStart,
-      transformEnd: transformEnd ?? other.transformEnd,
-      sizeStart: sizeStart ?? other.sizeStart,
-      sizeEnd: sizeEnd ?? other.sizeEnd,
+      startAlign: startAlign ?? other.startAlign,
+      endAlign: endAlign ?? other.endAlign,
+      startOpacity: startOpacity ?? other.startOpacity,
+      endOpacity: endOpacity ?? other.endOpacity,
+      startTransform: startTransform ?? other.startTransform,
+      endTransform: endTransform ?? other.endTransform,
+      startSize: startSize ?? other.startSize,
+      endSize: endSize ?? other.endSize,
       duration: (duration?.compareTo(other.duration ?? Duration.zero) ?? 0) > 0
           ? duration
           : other.duration,
@@ -313,14 +307,14 @@ class AnimationConfig {
   /// Flip config
   operator ~() {
     return AnimationConfig(
-      alignStart: alignEnd,
-      alignEnd: alignStart,
-      opacityStart: opacityEnd,
-      opacityEnd: opacityStart,
-      transformStart: transformEnd,
-      transformEnd: transformStart,
-      sizeStart: sizeEnd,
-      sizeEnd: sizeStart,
+      startAlign: endAlign,
+      endAlign: startAlign,
+      startOpacity: endOpacity,
+      endOpacity: startOpacity,
+      startTransform: endTransform,
+      endTransform: startTransform,
+      startSize: endSize,
+      endSize: startSize,
       duration: duration,
       curve: curve?.flipped,
     );
@@ -328,14 +322,14 @@ class AnimationConfig {
 
   /// To json
   Map<String, dynamic> toJson() => {
-        'alignStart': alignStart,
-        'alignEnd': alignEnd,
-        'opacityStart': opacityStart,
-        'opacityEnd': opacityEnd,
-        'transformStart': transformStart,
-        'transformEnd': transformEnd,
-        'sizeStart': sizeStart,
-        'sizeEnd': sizeEnd,
+        'startAlign': startAlign,
+        'endAlign': endAlign,
+        'startOpacity': startOpacity,
+        'endOpacity': endOpacity,
+        'startTransform': startTransform,
+        'endTransform': endTransform,
+        'startSize': startSize,
+        'endSize': endSize,
         'duration': duration,
         'curve': curve,
       };

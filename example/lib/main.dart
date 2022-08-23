@@ -36,10 +36,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final configs = <AnimationConfig>[];
   final keys = <ValueKey<int>>[];
   final configList = [
-    AnimationConfig.slideIn
-        .copyWith(sizeEnd: Size.zero, sizeStart: Size.infinite),
-    AnimationConfig.slideAndFadeIn
-        .copyWith(sizeEnd: Size.zero, sizeStart: Size.infinite),
+    AnimationConfig.slideIn,
+    AnimationConfig.slideAndFadeIn,
     AnimationConfig.zoomIn,
     AnimationConfig.fadeIn,
     AnimationConfig.fadeAndZoomIn,
@@ -50,19 +48,20 @@ class _MyHomePageState extends State<MyHomePage> {
     AnimationConfig.vFlipIn.copyWith(curve: Curves.bounceOut),
     AnimationConfig.hFlipIn.copyWith(curve: Curves.bounceOut),
     AnimationConfig.fadeIn.copyWith(
-      transformStart: Matrix4.identity()..rotateZ(math.pi / 2),
-      transformEnd: Matrix4.identity(),
+      startTransform: Matrix4.identity()..rotateZ(math.pi / 2),
+      endTransform: Matrix4.identity(),
       curve: Curves.bounceOut,
     )
   ];
   final random = math.Random(0);
   final removes = <int>{};
+  final removed = <int>{};
 
   final controller = ScrollController();
 
   int firstState = 1;
 
-  CombinedAnimationController? CAController;
+  CombinedAnimationController? caController;
 
   void _incrementCounter() {
     setState(() {
@@ -95,6 +94,158 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Widget _setStateDemo(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          alignment: Alignment.center,
+          height: 60,
+          child: CombinedAnimation(
+            state: firstState == 2
+                ? AnimationType.end
+                : firstState == 1
+                    ? AnimationType.start
+                    : null,
+            config: AnimationConfig.vFlipIn,
+            child: Container(
+              width: 100.0,
+              height: 40.0,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.primaries[0][200]!,
+                    Colors.primaries[1][200]!,
+                    Colors.primaries[2][200]!,
+                  ],
+                ),
+                borderRadius: const BorderRadius.all(Radius.circular(10)),
+              ),
+            ),
+          ),
+        ),
+        const Positioned(
+          left: 8,
+          top: 0,
+          bottom: 0,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Control by state',
+            ),
+          ),
+        ),
+        Positioned(
+          right: 8,
+          top: 0,
+          bottom: 0,
+          child: Center(
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                shape: const StadiumBorder(),
+              ),
+              label: Text(firstState == 0
+                  ? 'Show'
+                  : firstState == 1
+                      ? 'Hide'
+                      : 'Reset'),
+              onPressed: () {
+                final cState = firstState + 1;
+
+                setState(() {
+                  firstState = cState > 2 ? 0 : cState;
+                });
+              },
+              icon: const Icon(Icons.animation),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _setControlDemo(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          alignment: Alignment.center,
+          height: 60,
+          child: CombinedAnimation(
+            config: AnimationConfig.vFlipIn,
+            onEntered: (c) {
+              caController = c;
+              setState(() {});
+            },
+            onLeaved: (s) {
+              setState(() {});
+              return null;
+            },
+            onDissmiss: () {
+              setState(() {});
+            },
+            isControlled: true,
+            child: Container(
+              width: 100.0,
+              height: 40.0,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.primaries[9][200]!,
+                    Colors.primaries[10][200]!,
+                    Colors.primaries[11][200]!,
+                  ],
+                ),
+                borderRadius: const BorderRadius.all(Radius.circular(10)),
+              ),
+            ),
+          ),
+        ),
+        const Positioned(
+          left: 8,
+          top: 0,
+          bottom: 0,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Control by controller',
+            ),
+          ),
+        ),
+        Positioned(
+          right: 8,
+          top: 0,
+          bottom: 0,
+          child: Center(
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                shape: const StadiumBorder(),
+              ),
+              label: Text((caController?.isLeaved ?? false)
+                  ? 'Reset'
+                  : (caController?.isEntered ?? false)
+                      ? 'Hide'
+                      : 'Show'),
+              onPressed: () {
+                if (caController?.isEntered ?? false) {
+                  caController?.leave();
+                } else if (caController?.isLeaved ?? false) {
+                  caController?.init();
+                  setState(() {});
+                } else {
+                  caController?.enter();
+                }
+              },
+              icon: const Icon(Icons.animation),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,154 +255,8 @@ class _MyHomePageState extends State<MyHomePage> {
       body: SafeArea(
         child: Column(
           children: [
-            Stack(
-              children: [
-                Container(
-                  alignment: Alignment.center,
-                  height: 60,
-                  child: CombinedAnimation(
-                    state: firstState == 2
-                        ? AnimationType.end
-                        : firstState == 1
-                            ? AnimationType.start
-                            : null,
-                    config: AnimationConfig.vFlipIn,
-                    child: Container(
-                      width: 100.0,
-                      height: 40.0,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.primaries[0][200]!,
-                            Colors.primaries[1][200]!,
-                            Colors.primaries[2][200]!,
-                          ],
-                        ),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(10)),
-                      ),
-                    ),
-                  ),
-                ),
-                const Positioned(
-                  left: 8,
-                  top: 0,
-                  bottom: 0,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Control by state',
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 8,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        shape: const StadiumBorder(),
-                      ),
-                      label: Text(firstState == 0
-                          ? '显示'
-                          : firstState == 1
-                              ? '隐藏'
-                              : '重置'),
-                      onPressed: () {
-                        final cState = firstState + 1;
-
-                        setState(() {
-                          firstState = cState > 2 ? 0 : cState;
-                        });
-                      },
-                      icon: const Icon(Icons.remove),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Stack(
-              children: [
-                Container(
-                  alignment: Alignment.center,
-                  height: 60,
-                  child: CombinedAnimation(
-                    config: AnimationConfig.vFlipIn,
-                    onEndIn: (c) {
-                      CAController = c;
-                      setState(() {});
-                    },
-                    onEndOut: (s) {
-                      setState(() {});
-                      return null;
-                    },
-                    onRemove: () {
-                      setState(() {});
-                    },
-                    isControlled: true,
-                    child: Container(
-                      width: 100.0,
-                      height: 40.0,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.primaries[9][200]!,
-                            Colors.primaries[10][200]!,
-                            Colors.primaries[11][200]!,
-                          ],
-                        ),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(10)),
-                      ),
-                    ),
-                  ),
-                ),
-                const Positioned(
-                  left: 8,
-                  top: 0,
-                  bottom: 0,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Control by controller',
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 8,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        shape: const StadiumBorder(),
-                      ),
-                      label: Text((CAController?.isLeaved ?? false)
-                          ? '重置'
-                          : (CAController?.isEntered ?? false)
-                              ? '隐藏'
-                              : '显示'),
-                      onPressed: () {
-                        if (CAController?.isEntered ?? false) {
-                          CAController?.leave();
-                        } else if (CAController?.isLeaved ?? false) {
-                          CAController?.init();
-                          setState(() {});
-                        } else {
-                          CAController?.enter();
-                        }
-                      },
-                      icon: const Icon(Icons.remove),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            _setStateDemo(context),
+            _setControlDemo(context),
             Expanded(
               child: ListView.builder(
                 controller: controller,
@@ -265,25 +270,31 @@ class _MyHomePageState extends State<MyHomePage> {
                   return Stack(
                     key: keys[index],
                     children: [
-                      Container(
-                        alignment: Alignment.center,
-                        height: configs[index].hasAlign ? 60 : null,
-                        padding: configs[index].hasAlign
-                            ? null
-                            : const EdgeInsets.symmetric(vertical: 8),
-                        child: CombinedAnimation(
-                          state: removes.contains(index)
-                              ? AnimationType.end
-                              : AnimationType.start,
-                          onRemove: () {
-                            removes.remove(index);
-                            widgets.removeAt(index);
-                            configs.removeAt(index);
-                            keys.removeAt(index);
-                            setState(() {});
-                          },
-                          config: configs[index],
-                          child: widgets[index],
+                      ConstrainedBox(
+                        constraints: removed.contains(index)
+                            ? BoxConstraints.loose(Size.infinite)
+                            : BoxConstraints.tight(const Size.fromHeight(60)),
+                        child: Center(
+                          child: CombinedAnimation(
+                            state: removes.contains(index)
+                                ? AnimationType.end
+                                : AnimationType.start,
+                            onLeaved: (s) {
+                              removed.add(index);
+                              setState(() {});
+                              return null;
+                            },
+                            onDissmiss: () {
+                              removes.remove(index);
+                              widgets.removeAt(index);
+                              configs.removeAt(index);
+                              keys.removeAt(index);
+                              removed.remove(index);
+                              setState(() {});
+                            },
+                            config: configs[index],
+                            child: widgets[index],
+                          ),
                         ),
                       ),
                       if (!removes.contains(index))
