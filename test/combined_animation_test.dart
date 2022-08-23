@@ -5,7 +5,8 @@ import 'package:combined_animation/combined_animation.dart';
 
 void main() {
   test('config', () {
-    AnimationConfig config = AnimationConfig.fadeIn | AnimationConfig.zoomIn;
+    final AnimationConfig config =
+        AnimationConfig.fadeIn | AnimationConfig.zoomIn;
 
     expect(config.startOpacity, 0);
     expect(config.endOpacity, 1);
@@ -14,7 +15,7 @@ void main() {
   });
 
   test('snapshot', () {
-    AnimationConfig config = AnimationConfig.slideIn |
+    final AnimationConfig config = AnimationConfig.slideIn |
         AnimationConfig.fadeIn |
         AnimationConfig.zoomIn;
 

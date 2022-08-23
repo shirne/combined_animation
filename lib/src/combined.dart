@@ -1,6 +1,7 @@
-import 'package:combined_animation/src/config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'config.dart';
 
 /// Only allow user to start or stop
 enum AnimationType {

@@ -6,7 +6,7 @@
 
 </center>
 
-A combined animation widget, contains alignment, opacity, transform for show in and hide out a widget.
+A combined animation widget, contains alignment, opacity, transform, size for enter and leave a widget.
 
 ## Features
 
@@ -15,12 +15,14 @@ A combined animation widget, contains alignment, opacity, transform for show in 
 - [x] transform animation.
 - [x] size animation.
 
-- [x] enter animation.
-- [x] leave animation.
+- [x] enter animation config.
+- [x] leave animation config.
+
+- [x] dissmiss size animation
 
 ## Preview
 
-![preview](preview/combined_animation.gif "preview")
+![preview](preview/preview.gif "preview")
 
 ## Getting started
 
@@ -48,3 +50,5 @@ CombinedAnimation(
 ```
 
 ## Produce
+
+![Produce](preview/produce.png)

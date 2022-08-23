@@ -4,14 +4,15 @@ import 'package:flutter/widgets.dart';
 
 /// A snapshot of an animation config
 class AnimationSnapshot {
-  final Matrix4? transform;
-  final double? opacity;
-  final AlignmentGeometry? alignment;
   AnimationSnapshot({
     this.transform,
     this.opacity,
     this.alignment,
   });
+
+  final Matrix4? transform;
+  final double? opacity;
+  final AlignmentGeometry? alignment;
 
   Map<String, dynamic> toJson() => {
         'transform': transform,
