@@ -13,9 +13,10 @@ A combined animation widget, contains alignment, opacity, transform for show in 
 - [x] alignment animation.
 - [x] opacity animation.
 - [x] transform animation.
+- [x] size animation.
 
-- [x] show in animation.
-- [x] hide out animation.
+- [x] enter animation.
+- [x] leave animation.
 
 ## Preview
 

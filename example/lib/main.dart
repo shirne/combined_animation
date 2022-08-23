@@ -36,42 +36,40 @@ class _MyHomePageState extends State<MyHomePage> {
   final configs = <AnimationConfig>[];
   final keys = <ValueKey<int>>[];
   final configList = [
-    AnimationConfig.slideIn,
+    AnimationConfig.slideIn
+        .copyWith(sizeEnd: Size.zero, sizeStart: Size.infinite),
+    AnimationConfig.slideAndFadeIn
+        .copyWith(sizeEnd: Size.zero, sizeStart: Size.infinite),
     AnimationConfig.zoomIn,
     AnimationConfig.fadeIn,
     AnimationConfig.fadeAndZoomIn,
-    AnimationConfig(
-      transformStart: Matrix4.identity()..scale(0.0),
-      transformEnd: Matrix4.identity(),
-      curve: Curves.bounceOut,
-    ),
-    AnimationConfig(
-      transformStart: Matrix4.identity()..scale(0.5),
-      transformEnd: Matrix4.identity(),
-      opacityStart: 0,
-      opacityEnd: 1,
-      curve: Curves.bounceOut,
-    ),
-    AnimationConfig(
-      transformStart: Matrix4.identity()..rotateX(math.pi / 2),
-      transformEnd: Matrix4.identity(),
-      curve: Curves.bounceOut,
-    ),
-    AnimationConfig(
+    AnimationConfig.vFlipIn,
+    AnimationConfig.hFlipIn,
+    AnimationConfig.zoomIn.copyWith(curve: Curves.bounceOut),
+    AnimationConfig.fadeAndZoomIn.copyWith(curve: Curves.bounceOut),
+    AnimationConfig.vFlipIn.copyWith(curve: Curves.bounceOut),
+    AnimationConfig.hFlipIn.copyWith(curve: Curves.bounceOut),
+    AnimationConfig.fadeIn.copyWith(
       transformStart: Matrix4.identity()..rotateZ(math.pi / 2),
       transformEnd: Matrix4.identity(),
       curve: Curves.bounceOut,
-    ),
+    )
   ];
   final random = math.Random(0);
   final removes = <int>{};
+
+  final controller = ScrollController();
+
+  int firstState = 1;
+
+  CombinedAnimationController? CAController;
 
   void _incrementCounter() {
     setState(() {
       final index = widgets.length;
       widgets.add(Container(
-        width: 100.0 + random.nextInt(100),
-        height: 20.0 + random.nextInt(30),
+        width: 100.0,
+        height: 40.0,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -88,6 +86,13 @@ class _MyHomePageState extends State<MyHomePage> {
       configs.add(configList[index % configList.length]);
       keys.add(ValueKey(index == 0 ? 0 : keys.last.value + 1));
     });
+    WidgetsBinding.instance.scheduleFrameCallback((timeStamp) {
+      controller.animateTo(
+        controller.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeIn,
+      );
+    });
   }
 
   @override
@@ -97,35 +102,48 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: SafeArea(
-        child: ListView.builder(
-          itemCount: widgets.length,
-          findChildIndexCallback: (key) {
-            final index = keys.indexOf(key as ValueKey<int>);
-            return index > -1 ? index : null;
-          },
-          itemBuilder: (context, index) {
-            return Stack(
-              key: keys[index],
+        child: Column(
+          children: [
+            Stack(
               children: [
                 Container(
                   alignment: Alignment.center,
-                  height: configs[index].hasAlign ? 60 : null,
-                  padding: configs[index].hasAlign
-                      ? null
-                      : const EdgeInsets.symmetric(vertical: 8),
+                  height: 60,
                   child: CombinedAnimation(
-                    state: removes.contains(index)
+                    state: firstState == 2
                         ? AnimationType.end
-                        : AnimationType.start,
-                    onEndOut: () {
-                      removes.remove(index);
-                      widgets.removeAt(index);
-                      configs.removeAt(index);
-                      keys.removeAt(index);
-                      setState(() {});
-                    },
-                    config: configs[index],
-                    child: widgets[index],
+                        : firstState == 1
+                            ? AnimationType.start
+                            : null,
+                    config: AnimationConfig.vFlipIn,
+                    child: Container(
+                      width: 100.0,
+                      height: 40.0,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.primaries[0][200]!,
+                            Colors.primaries[1][200]!,
+                            Colors.primaries[2][200]!,
+                          ],
+                        ),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ),
+                const Positioned(
+                  left: 8,
+                  top: 0,
+                  bottom: 0,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Control by state',
+                    ),
                   ),
                 ),
                 Positioned(
@@ -137,11 +155,16 @@ class _MyHomePageState extends State<MyHomePage> {
                       style: OutlinedButton.styleFrom(
                         shape: const StadiumBorder(),
                       ),
-                      label: const Text('delete'),
+                      label: Text(firstState == 0
+                          ? '显示'
+                          : firstState == 1
+                              ? '隐藏'
+                              : '重置'),
                       onPressed: () {
-                        if (removes.contains(index)) return;
+                        final cState = firstState + 1;
+
                         setState(() {
-                          removes.add(index);
+                          firstState = cState > 2 ? 0 : cState;
                         });
                       },
                       icon: const Icon(Icons.remove),
@@ -149,8 +172,147 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ],
-            );
-          },
+            ),
+            Stack(
+              children: [
+                Container(
+                  alignment: Alignment.center,
+                  height: 60,
+                  child: CombinedAnimation(
+                    config: AnimationConfig.vFlipIn,
+                    onEndIn: (c) {
+                      CAController = c;
+                      setState(() {});
+                    },
+                    onEndOut: (s) {
+                      setState(() {});
+                      return null;
+                    },
+                    onRemove: () {
+                      setState(() {});
+                    },
+                    isControlled: true,
+                    child: Container(
+                      width: 100.0,
+                      height: 40.0,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.primaries[9][200]!,
+                            Colors.primaries[10][200]!,
+                            Colors.primaries[11][200]!,
+                          ],
+                        ),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ),
+                const Positioned(
+                  left: 8,
+                  top: 0,
+                  bottom: 0,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Control by controller',
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 8,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        shape: const StadiumBorder(),
+                      ),
+                      label: Text((CAController?.isLeaved ?? false)
+                          ? '重置'
+                          : (CAController?.isEntered ?? false)
+                              ? '隐藏'
+                              : '显示'),
+                      onPressed: () {
+                        if (CAController?.isEntered ?? false) {
+                          CAController?.leave();
+                        } else if (CAController?.isLeaved ?? false) {
+                          CAController?.init();
+                          setState(() {});
+                        } else {
+                          CAController?.enter();
+                        }
+                      },
+                      icon: const Icon(Icons.remove),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Expanded(
+              child: ListView.builder(
+                controller: controller,
+                itemCount: widgets.length,
+                padding: const EdgeInsets.only(bottom: 80),
+                findChildIndexCallback: (key) {
+                  final index = keys.indexOf(key as ValueKey<int>);
+                  return index > -1 ? index : null;
+                },
+                itemBuilder: (context, index) {
+                  return Stack(
+                    key: keys[index],
+                    children: [
+                      Container(
+                        alignment: Alignment.center,
+                        height: configs[index].hasAlign ? 60 : null,
+                        padding: configs[index].hasAlign
+                            ? null
+                            : const EdgeInsets.symmetric(vertical: 8),
+                        child: CombinedAnimation(
+                          state: removes.contains(index)
+                              ? AnimationType.end
+                              : AnimationType.start,
+                          onRemove: () {
+                            removes.remove(index);
+                            widgets.removeAt(index);
+                            configs.removeAt(index);
+                            keys.removeAt(index);
+                            setState(() {});
+                          },
+                          config: configs[index],
+                          child: widgets[index],
+                        ),
+                      ),
+                      if (!removes.contains(index))
+                        Positioned(
+                          right: 8,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                shape: const StadiumBorder(),
+                              ),
+                              label: const Text('delete'),
+                              onPressed: () {
+                                if (removes.contains(index)) return;
+                                setState(() {
+                                  removes.add(index);
+                                });
+                              },
+                              icon: const Icon(Icons.remove),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
