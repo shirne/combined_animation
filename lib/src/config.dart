@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/widgets.dart';
 
@@ -92,7 +93,7 @@ class AnimationConfig {
   );
 
   /// Zoom out
-  static final zoomOut = ~zoomIn;
+  static final AnimationConfig zoomOut = ~zoomIn;
 
   /// Zoom in with fade in
   static final fadeAndZoomIn = AnimationConfig(
@@ -104,7 +105,7 @@ class AnimationConfig {
   );
 
   /// Zoom out with fade out
-  static final fadeAndZoomOut = ~fadeAndZoomIn;
+  static final AnimationConfig fadeAndZoomOut = ~fadeAndZoomIn;
 
   static final vFlipIn = AnimationConfig(
     startTransform: Matrix4.identity()..rotateX(math.pi / 2),
@@ -112,7 +113,7 @@ class AnimationConfig {
     curve: Curves.easeOutQuad,
   );
 
-  static final vFlipOut = ~vFlipIn;
+  static final AnimationConfig vFlipOut = ~vFlipIn;
 
   static final hFlipIn = AnimationConfig(
     startTransform: Matrix4.identity()..rotateY(math.pi / 2),
@@ -120,7 +121,7 @@ class AnimationConfig {
     curve: Curves.easeOutQuad,
   );
 
-  static final hFlipOut = ~hFlipIn;
+  static final AnimationConfig hFlipOut = ~hFlipIn;
 
   /// All paired params must be provided or null.
   const AnimationConfig({
@@ -237,12 +238,12 @@ class AnimationConfig {
     if (hasMatrix) {
       matrix4 = Matrix4.fromList(List.generate(
         16,
-        (idx) => _lerpValue(startTransform![idx], endTransform![idx], value),
+        (idx) => lerpDouble(startTransform![idx], endTransform![idx], value)!,
       ));
     }
     double? opacity;
     if (hasOpacity) {
-      opacity = _lerpValue(startOpacity!, endOpacity!, value);
+      opacity = lerpDouble(startOpacity, endOpacity, value) ?? 1;
     }
     AlignmentGeometry? alignment;
     if (hasAlign) {
@@ -282,10 +283,6 @@ class AnimationConfig {
         duration: duration ?? this.duration,
         curve: curve ?? this.curve,
       );
-
-  double _lerpValue(double start, double end, double value) {
-    return start + (end - start) * value;
-  }
 
   /// Combine two config
   operator |(AnimationConfig other) {
