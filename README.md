@@ -10,15 +10,15 @@ A combined animation widget, contains alignment, opacity, transform, size for en
 
 ## Features
 
-- [x] alignment animation.
-- [x] opacity animation.
-- [x] transform animation.
-- [x] size animation.
+- ✅ alignment animation.
+- ✅ opacity animation.
+- ✅ transform animation.
+- ✅ size animation.
 
-- [x] enter animation config.
-- [x] leave animation config.
+- ✅ enter animation config.
+- ✅ leave animation config.
 
-- [x] dissmiss size animation
+- ✅ dissmiss size animation
 
 ## Preview
 
