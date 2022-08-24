@@ -53,16 +53,10 @@ class _MyHomePageState extends State<MyHomePage> {
       curve: Curves.bounceOut,
     )
   ];
-  final random = math.Random(0);
-  final removes = <int>{};
-  final removed = <int>{};
 
   final controller = ScrollController();
 
-  int firstState = 1;
-
-  CombinedAnimationController? caController;
-
+  /// generate a new animation item
   void _incrementCounter() {
     setState(() {
       final index = widgets.length;
@@ -94,18 +88,146 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Widget _setStateDemo(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const StateDemoWidget(),
+            const ControlDemoWidget(),
+            Expanded(
+              child: ListView.builder(
+                controller: controller,
+                itemCount: widgets.length,
+                padding: const EdgeInsets.only(bottom: 80),
+                findChildIndexCallback: (key) {
+                  final index = keys.indexOf(key as ValueKey<int>);
+                  return index > -1 ? index : null;
+                },
+                itemBuilder: (context, index) {
+                  return AnimateItem(
+                    key: keys[index],
+                    animate: configs[index],
+                    onDismiss: () {
+                      setState(() {
+                        widgets.removeAt(index);
+                        configs.removeAt(index);
+                        keys.removeAt(index);
+                      });
+                    },
+                    child: widgets[index],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        tooltip: 'AddItem',
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+/// Generate an Anitate Widget control by button
+class AnimateItem extends StatefulWidget {
+  const AnimateItem({
+    Key? key,
+    required this.child,
+    required this.animate,
+    this.onDismiss,
+    this.height = 60.0,
+  }) : super(key: key);
+
+  final Widget child;
+
+  final VoidCallback? onDismiss;
+
+  final double height;
+
+  final AnimationConfig animate;
+
+  @override
+  State<AnimateItem> createState() => _AnimateItemState();
+}
+
+class _AnimateItemState extends State<AnimateItem> {
+  bool isDissmissing = false;
+  bool isLeave = false;
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        ConstrainedBox(
+          constraints: isDissmissing
+              ? BoxConstraints.loose(Size.infinite)
+              : BoxConstraints.tight(Size.fromHeight(widget.height)),
+          child: Center(
+            child: CombinedAnimation(
+              state: isLeave ? AnimationType.end : AnimationType.start,
+              onLeaved: (s) {
+                setState(() {
+                  isDissmissing = true;
+                });
+                return null;
+              },
+              onDissmiss: widget.onDismiss,
+              config: widget.animate,
+              child: widget.child,
+            ),
+          ),
+        ),
+        if (!isLeave)
+          Positioned(
+            right: 8,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  shape: const StadiumBorder(),
+                ),
+                label: const Text('delete'),
+                onPressed: () {
+                  if (isLeave) return;
+                  setState(() {
+                    isLeave = true;
+                  });
+                },
+                icon: const Icon(Icons.remove),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class StateDemoWidget extends StatefulWidget {
+  const StateDemoWidget({Key? key}) : super(key: key);
+
+  @override
+  State<StateDemoWidget> createState() => _StateDemoWidgetState();
+}
+
+class _StateDemoWidgetState extends State<StateDemoWidget> {
+  AnimationType? state = AnimationType.start;
+  @override
+  Widget build(BuildContext context) {
     return Stack(
       children: [
         Container(
           alignment: Alignment.center,
           height: 60,
           child: CombinedAnimation(
-            state: firstState == 2
-                ? AnimationType.end
-                : firstState == 1
-                    ? AnimationType.start
-                    : null,
+            state: state,
             config: AnimationConfig.vFlipIn,
             child: Container(
               width: 100.0,
@@ -145,16 +267,18 @@ class _MyHomePageState extends State<MyHomePage> {
               style: OutlinedButton.styleFrom(
                 shape: const StadiumBorder(),
               ),
-              label: Text(firstState == 0
-                  ? 'Show'
-                  : firstState == 1
-                      ? 'Hide'
-                      : 'Reset'),
+              label: Text(
+                state == null
+                    ? 'Show'
+                    : state == AnimationType.start
+                        ? 'Hide'
+                        : 'Reset',
+              ),
               onPressed: () {
-                final cState = firstState + 1;
+                final cState = (state?.index ?? -1) + 1;
 
                 setState(() {
-                  firstState = cState > 2 ? 0 : cState;
+                  state = cState > 1 ? null : AnimationType.values[cState];
                 });
               },
               icon: const Icon(Icons.animation),
@@ -164,8 +288,22 @@ class _MyHomePageState extends State<MyHomePage> {
       ],
     );
   }
+}
 
-  Widget _setControlDemo(BuildContext context) {
+/// control animation by controller
+class ControlDemoWidget extends StatefulWidget {
+  const ControlDemoWidget({Key? key}) : super(key: key);
+
+  @override
+  State<ControlDemoWidget> createState() => _ControlDemoWidgetState();
+}
+
+class _ControlDemoWidgetState extends State<ControlDemoWidget> {
+  /// control by controller
+  CombinedAnimationController? caController;
+
+  @override
+  Widget build(BuildContext context) {
     return Stack(
       children: [
         Container(
@@ -243,94 +381,6 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _setStateDemo(context),
-            _setControlDemo(context),
-            Expanded(
-              child: ListView.builder(
-                controller: controller,
-                itemCount: widgets.length,
-                padding: const EdgeInsets.only(bottom: 80),
-                findChildIndexCallback: (key) {
-                  final index = keys.indexOf(key as ValueKey<int>);
-                  return index > -1 ? index : null;
-                },
-                itemBuilder: (context, index) {
-                  return Stack(
-                    key: keys[index],
-                    children: [
-                      ConstrainedBox(
-                        constraints: removed.contains(index)
-                            ? BoxConstraints.loose(Size.infinite)
-                            : BoxConstraints.tight(const Size.fromHeight(60)),
-                        child: Center(
-                          child: CombinedAnimation(
-                            state: removes.contains(index)
-                                ? AnimationType.end
-                                : AnimationType.start,
-                            onLeaved: (s) {
-                              removed.add(index);
-                              setState(() {});
-                              return null;
-                            },
-                            onDissmiss: () {
-                              removes.remove(index);
-                              widgets.removeAt(index);
-                              configs.removeAt(index);
-                              keys.removeAt(index);
-                              removed.remove(index);
-                              setState(() {});
-                            },
-                            config: configs[index],
-                            child: widgets[index],
-                          ),
-                        ),
-                      ),
-                      if (!removes.contains(index))
-                        Positioned(
-                          right: 8,
-                          top: 0,
-                          bottom: 0,
-                          child: Center(
-                            child: OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                shape: const StadiumBorder(),
-                              ),
-                              label: const Text('delete'),
-                              onPressed: () {
-                                if (removes.contains(index)) return;
-                                setState(() {
-                                  removes.add(index);
-                                });
-                              },
-                              icon: const Icon(Icons.remove),
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'AddItem',
-        child: const Icon(Icons.add),
-      ),
     );
   }
 }
