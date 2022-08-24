@@ -37,12 +37,19 @@ CombinedAnimation(
     state: willRemove?
         ? AnimationType.end
         : AnimationType.start,
+    onEntered: (controller) {
+        // controller.leave()
+    },
     onLeaved: (size) {
-        
+        // you can return a size box with size amination to diy dissmiss animation
+        // or will generate a default one
     },
     onDissmiss:(){
-        doRemove(item);
-        setState(() {});
+        // if you dont remove it
+        // you can call controller.enter to show it again
+        setState(() {
+            doRemove(item);
+        });
     },
     config: AnimationConfig.fadeAndZoomIn,
     child: child,
