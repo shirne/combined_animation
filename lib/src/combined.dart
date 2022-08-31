@@ -10,7 +10,7 @@ enum AnimationType {
 }
 
 /// Combine state of [CombinedAnimation]
-enum CombineState {
+enum AnimationState {
   init,
   beginEnter,
   endEnter,
@@ -31,17 +31,20 @@ class CombinedAnimation extends StatefulWidget {
     AnimationType? state = AnimationType.start,
     this.dismissDuration = _defaultDuration,
     this.dismissCurve = Curves.easeOut,
+    this.controller,
+    this.onInit,
     this.onEntered,
     this.onLeaved,
     this.onDissmiss,
+    this.leaveBuilder,
     this.autoSlide = true,
     this.isControlled = false,
   })  : leaveConfig = leaveConfig ?? ~config,
         state = state == AnimationType.start
-            ? CombineState.beginEnter
+            ? AnimationState.beginEnter
             : state == AnimationType.end
-                ? CombineState.beginLeave
-                : CombineState.init,
+                ? AnimationState.beginLeave
+                : AnimationState.init,
         super(key: key);
 
   /// Enter animation config
@@ -51,13 +54,22 @@ class CombinedAnimation extends StatefulWidget {
   final AnimationConfig leaveConfig;
 
   /// State to pass in
-  final CombineState state;
+  final AnimationState state;
+
+  /// pass a controller to attach state
+  final CombinedAnimationController? controller;
+
+  /// Callback to build a size transation to dismiss
+  final Widget? Function(Size?)? leaveBuilder;
+
+  /// Callback when state inited
+  final VoidCallback? onInit;
 
   /// Callback when show in animation is complete
-  final void Function(CombinedAnimationController)? onEntered;
+  final VoidCallback? onEntered;
 
-  /// Callback when hide out animation is complete
-  final Widget? Function(Size?)? onLeaved;
+  /// Callback when leave animation is complete
+  final VoidCallback? onLeaved;
 
   /// Callback when size is Zero
   final VoidCallback? onDissmiss;
@@ -71,8 +83,10 @@ class CombinedAnimation extends StatefulWidget {
   /// If is controlled, State will not update state from widget
   final bool isControlled;
 
-  /// animation to dismiss
+  /// animation duration to dismiss
   final Duration dismissDuration;
+
+  /// animation curve to dismiss
   final Curve dismissCurve;
 
   @override
@@ -80,33 +94,51 @@ class CombinedAnimation extends StatefulWidget {
 }
 
 /// AnimationController to control Animation State
-class CombinedAnimationController {
-  const CombinedAnimationController._(this._state);
+class CombinedAnimationController extends ChangeNotifier {
+  CombinedAnimationController();
 
-  final _CombinedAnimationState _state;
+  _CombinedAnimationState? _state;
 
-  bool get isEntered => _state.state == CombineState.endEnter;
+  AnimationState get state => _state?.state ?? AnimationState.init;
 
-  bool get isLeaved => _state.state.index >= CombineState.endLeave.index;
+  bool get isEntered =>
+      (_state?.state ?? AnimationState.init) == AnimationState.endEnter;
+
+  bool get isLeaved =>
+      (_state?.state.index ?? 0) >= AnimationState.endLeave.index;
+
+  void _attach(_CombinedAnimationState state) {
+    _state = state;
+  }
+
+  void _stateChanged() {
+    notifyListeners();
+  }
 
   /// reset
   void init() {
-    _state.init();
+    _state?.init();
   }
 
   /// stop animation
   void stop() {
-    _state.stop();
+    _state?.stop();
   }
 
   /// start enter animation
   void enter({Duration? duration}) {
-    _state.enter(duration: duration);
+    _state?.enter(duration: duration);
   }
 
   /// start leave animation
   void leave({Duration? duration}) {
-    _state.leave(duration: duration);
+    _state?.leave(duration: duration);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _state = null;
   }
 }
 
@@ -114,40 +146,45 @@ class _CombinedAnimationState extends State<CombinedAnimation>
     with SingleTickerProviderStateMixin<CombinedAnimation> {
   late AnimationSnapshot snapshot;
 
-  CombineState state = CombineState.init;
+  AnimationState state = AnimationState.init;
 
   late final animation = AnimationController(vsync: this);
 
-  Widget? quitChild;
   Size? size;
 
   bool get isEnter =>
-      state.index >= CombineState.beginEnter.index &&
-      state.index <= CombineState.endEnter.index;
+      state.index >= AnimationState.beginEnter.index &&
+      state.index <= AnimationState.endEnter.index;
 
   bool get isLeave =>
-      state.index >= CombineState.beginLeave.index &&
-      state.index <= CombineState.endLeave.index;
+      state.index >= AnimationState.beginLeave.index &&
+      state.index <= AnimationState.endLeave.index;
 
   @override
   void initState() {
     super.initState();
     snapshot = widget.config.snapshot(0);
     state = widget.state;
-    if (state == CombineState.beginEnter) {
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        enter();
-      });
-    }
+
     animation.addListener(_onAnimation);
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if (state == AnimationState.beginEnter) {
+        enter();
+      }
+      widget.onInit?.call();
+    });
+
+    widget.controller?._attach(this);
   }
 
   void init() {
     stop();
-    state = CombineState.init;
+    state = AnimationState.init;
     setState(() {
       snapshot = widget.config.snapshot(0);
     });
+    widget.controller?._stateChanged();
   }
 
   void stop({bool canceled = true}) {
@@ -158,11 +195,12 @@ class _CombinedAnimationState extends State<CombinedAnimation>
 
   void enter({Duration? duration}) {
     if (!mounted) return;
-    if (state.index < CombineState.endLeave.index &&
-        state.index > CombineState.beginEnter.index) {
+    if (state.index < AnimationState.endLeave.index &&
+        state.index > AnimationState.beginEnter.index) {
       return;
     }
-    state = CombineState.beginEnter;
+    state = AnimationState.beginEnter;
+    widget.controller?._stateChanged();
     animation
         .animateTo(
       1,
@@ -171,15 +209,17 @@ class _CombinedAnimationState extends State<CombinedAnimation>
     )
         .whenComplete(() {
       size = context.size;
-      state = CombineState.endEnter;
-      widget.onEntered?.call(CombinedAnimationController._(this));
+      state = AnimationState.endEnter;
+      widget.onEntered?.call();
+      widget.controller?._stateChanged();
     });
   }
 
   void leave({Duration? duration}) {
     if (!mounted) return;
-    if (state.index >= CombineState.beginLeave.index) return;
-    state = CombineState.beginLeave;
+    if (state.index >= AnimationState.beginLeave.index) return;
+    state = AnimationState.beginLeave;
+    widget.controller?._stateChanged();
     animation
         .animateTo(
       0,
@@ -187,22 +227,25 @@ class _CombinedAnimationState extends State<CombinedAnimation>
       curve: widget.leaveConfig.curve ?? Curves.easeOut,
     )
         .whenComplete(() {
-      state = CombineState.endLeave;
+      state = AnimationState.endLeave;
       size = context.size;
-      quitChild = widget.onLeaved?.call(context.size);
+      widget.onLeaved?.call();
+      widget.controller?._stateChanged();
 
       WidgetsBinding.instance.scheduleFrameCallback((timeStamp) {
         if (size == null) {
-          state = CombineState.dismiss;
+          state = AnimationState.dismiss;
           widget.onDissmiss?.call();
+          widget.controller?._stateChanged();
         } else {
           size = null;
           setState(() {});
           Future.delayed(Duration(
             milliseconds: widget.dismissDuration.inMilliseconds + 16,
           )).then((value) {
-            state = CombineState.dismiss;
+            state = AnimationState.dismiss;
             widget.onDissmiss?.call();
+            widget.controller?._stateChanged();
           });
         }
       });
@@ -220,23 +263,24 @@ class _CombinedAnimationState extends State<CombinedAnimation>
   @override
   void didUpdateWidget(covariant CombinedAnimation oldWidget) {
     super.didUpdateWidget(oldWidget);
+    widget.controller?._attach(this);
     if (widget.isControlled) return;
-    if (widget.state == CombineState.beginLeave) {
-      if (state == CombineState.endEnter) {
+    if (widget.state == AnimationState.beginLeave) {
+      if (state == AnimationState.endEnter) {
         leave();
       }
-    } else if (widget.state == CombineState.beginEnter) {
+    } else if (widget.state == AnimationState.beginEnter) {
       enter();
-    } else if (widget.state == CombineState.init &&
+    } else if (widget.state == AnimationState.init &&
         !animation.isAnimating &&
-        state == CombineState.dismiss) {
+        state == AnimationState.dismiss) {
       init();
     }
   }
 
   void _onAnimation() {
     setState(() {
-      snapshot = state.index > CombineState.endEnter.index
+      snapshot = state.index > AnimationState.endEnter.index
           ? widget.leaveConfig.snapshot(1 - animation.value)
           : widget.config.snapshot(animation.value);
     });
@@ -244,11 +288,11 @@ class _CombinedAnimationState extends State<CombinedAnimation>
 
   @override
   Widget build(BuildContext context) {
-    if (state.index >= CombineState.endLeave.index &&
+    if (state.index >= AnimationState.endLeave.index &&
         widget.autoSlide &&
-        (quitChild != null ||
+        (widget.leaveBuilder != null ||
             !(widget.config.hasSize || widget.leaveConfig.hasSize))) {
-      return quitChild ??
+      return widget.leaveBuilder?.call(size) ??
           AnimatedSize(
             duration: widget.dismissDuration,
             curve: widget.dismissCurve,

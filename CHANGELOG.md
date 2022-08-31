@@ -1,3 +1,10 @@
+## 0.2.0
+* Add Controller argument
+* Add leaveBuilder to build a dissmiss Widget
+* Add onInit callback
+* change onEntered remove controller argument
+* change onLeaved remove size argument
+
 ## 0.1.1
 * Update example
 * Fix static config Type declare

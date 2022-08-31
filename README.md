@@ -37,8 +37,11 @@ CombinedAnimation(
     state: willRemove?
         ? AnimationType.end
         : AnimationType.start,
-    onEntered: (controller) {
+    onAttachController: (controller) {
         // controller.leave()
+    },
+    onEntered: () {
+        
     },
     onLeaved: (size) {
         // you can return a size box with size amination to diy dissmiss animation

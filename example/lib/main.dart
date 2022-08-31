@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:math' as math;
 
 import 'package:combined_animation/combined_animation.dart';
@@ -172,11 +174,10 @@ class _AnimateItemState extends State<AnimateItem> {
           child: Center(
             child: CombinedAnimation(
               state: isLeave ? AnimationType.end : AnimationType.start,
-              onLeaved: (s) {
+              onLeaved: () {
                 setState(() {
                   isDissmissing = true;
                 });
-                return null;
               },
               onDissmiss: widget.onDismiss,
               config: widget.animate,
@@ -300,7 +301,18 @@ class ControlDemoWidget extends StatefulWidget {
 
 class _ControlDemoWidgetState extends State<ControlDemoWidget> {
   /// control by controller
-  CombinedAnimationController? caController;
+  late CombinedAnimationController caController = CombinedAnimationController()
+    ..addListener(() {
+      print(
+          '${caController.state} ${caController.isEntered} ${caController.isLeaved}');
+      setState(() {});
+    });
+
+  @override
+  void dispose() {
+    caController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -311,17 +323,7 @@ class _ControlDemoWidgetState extends State<ControlDemoWidget> {
           height: 60,
           child: CombinedAnimation(
             config: AnimationConfig.vFlipIn,
-            onEntered: (c) {
-              caController = c;
-              setState(() {});
-            },
-            onLeaved: (s) {
-              setState(() {});
-              return null;
-            },
-            onDissmiss: () {
-              setState(() {});
-            },
+            controller: caController,
             isControlled: true,
             child: Container(
               width: 100.0,
@@ -361,19 +363,20 @@ class _ControlDemoWidgetState extends State<ControlDemoWidget> {
               style: OutlinedButton.styleFrom(
                 shape: const StadiumBorder(),
               ),
-              label: Text((caController?.isLeaved ?? false)
+              label: Text((caController.isLeaved)
                   ? 'Reset'
-                  : (caController?.isEntered ?? false)
+                  : (caController.isEntered)
                       ? 'Hide'
                       : 'Show'),
               onPressed: () {
-                if (caController?.isEntered ?? false) {
-                  caController?.leave();
-                } else if (caController?.isLeaved ?? false) {
-                  caController?.init();
+                print(caController.isEntered);
+                if (caController.isEntered) {
+                  caController.leave();
+                } else if (caController.isLeaved) {
+                  caController.init();
                   setState(() {});
                 } else {
-                  caController?.enter();
+                  caController.enter();
                 }
               },
               icon: const Icon(Icons.animation),
