@@ -1,3 +1,6 @@
+## 0.3.1
+* reordered callback & state trigger
+
 ## 0.3.0
 * change leaveBuilder to dismissBuilder
 * fix dissmiss to dismiss

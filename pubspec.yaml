@@ -1,6 +1,6 @@
 name: combined_animation
 description: A combined animation widget, contains alignment, opacity, transform, size for enter and leave a widget.
-version: 0.3.0
+version: 0.3.1
 homepage: https://github.com/shirne/combined_animation
 
 environment:
