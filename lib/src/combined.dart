@@ -210,8 +210,8 @@ class _CombinedAnimationState extends State<CombinedAnimation>
         .whenComplete(() {
       size = context.size;
       state = AnimationState.endEnter;
-      widget.onEntered?.call();
       widget.controller?._stateChanged();
+      widget.onEntered?.call();
     });
   }
 
@@ -229,14 +229,14 @@ class _CombinedAnimationState extends State<CombinedAnimation>
         .whenComplete(() {
       state = AnimationState.endLeave;
       size = context.size;
-      widget.onLeaved?.call();
       widget.controller?._stateChanged();
+      widget.onLeaved?.call();
 
       WidgetsBinding.instance.scheduleFrameCallback((timeStamp) {
         if (size == null) {
           state = AnimationState.dismiss;
-          widget.onDismiss?.call();
           widget.controller?._stateChanged();
+          widget.onDismiss?.call();
         } else {
           size = null;
           setState(() {});
@@ -244,8 +244,8 @@ class _CombinedAnimationState extends State<CombinedAnimation>
             milliseconds: widget.dismissDuration.inMilliseconds + 16,
           )).then((value) {
             state = AnimationState.dismiss;
-            widget.onDismiss?.call();
             widget.controller?._stateChanged();
+            widget.onDismiss?.call();
           });
         }
       });
