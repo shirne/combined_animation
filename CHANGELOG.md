@@ -1,5 +1,6 @@
 ## 0.3.1
 * reordered callback & state trigger
+* fix zero dismiss delay
 
 ## 0.3.0
 * change leaveBuilder to dismissBuilder

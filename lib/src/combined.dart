@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 import 'config.dart';
 
+const _minFrameDelay = 16;
+
 /// Only allow user to start or stop
 enum AnimationType {
   start,
@@ -219,6 +221,7 @@ class _CombinedAnimationState extends State<CombinedAnimation>
     if (!mounted) return;
     if (state.index >= AnimationState.beginLeave.index) return;
     state = AnimationState.beginLeave;
+    size = context.size;
     widget.controller?._stateChanged();
     animation
         .animateTo(
@@ -228,12 +231,12 @@ class _CombinedAnimationState extends State<CombinedAnimation>
     )
         .whenComplete(() {
       state = AnimationState.endLeave;
-      size = context.size;
       widget.controller?._stateChanged();
       widget.onLeaved?.call();
 
       WidgetsBinding.instance.scheduleFrameCallback((timeStamp) {
-        if (size == null) {
+        if (size == null ||
+            widget.dismissDuration.inMilliseconds < _minFrameDelay) {
           state = AnimationState.dismiss;
           widget.controller?._stateChanged();
           widget.onDismiss?.call();
@@ -241,7 +244,8 @@ class _CombinedAnimationState extends State<CombinedAnimation>
           size = null;
           setState(() {});
           Future.delayed(Duration(
-            milliseconds: widget.dismissDuration.inMilliseconds + 16,
+            milliseconds:
+                widget.dismissDuration.inMilliseconds + _minFrameDelay,
           )).then((value) {
             state = AnimationState.dismiss;
             widget.controller?._stateChanged();
