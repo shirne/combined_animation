@@ -18,7 +18,7 @@ A combined animation widget, contains alignment, opacity, transform, size for en
 - ✅ enter animation config.
 - ✅ leave animation config.
 
-- ✅ dissmiss size animation
+- ✅ dismiss size animation
 
 ## Preview
 
@@ -37,17 +37,18 @@ CombinedAnimation(
     state: willRemove?
         ? AnimationType.end
         : AnimationType.start,
-    onAttachController: (controller) {
-        // controller.leave()
-    },
+    controller: CombinedAnimationController(),
     onEntered: () {
         
     },
-    onLeaved: (size) {
-        // you can return a size box with size amination to diy dissmiss animation
-        // or will generate a default one
+    onLeaved: () {
+        
     },
-    onDissmiss:(){
+    dismissBuilder: (context,size){
+        // you can return a size box with size amination to diy dismiss animation
+        // or will generate a default one
+    }
+    onDismiss:(){
         // if you dont remove it
         // you can call controller.enter to show it again
         setState(() {

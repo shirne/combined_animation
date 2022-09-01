@@ -35,8 +35,8 @@ class CombinedAnimation extends StatefulWidget {
     this.onInit,
     this.onEntered,
     this.onLeaved,
-    this.onDissmiss,
-    this.leaveBuilder,
+    this.onDismiss,
+    this.dismissBuilder,
     this.autoSlide = true,
     this.isControlled = false,
   })  : leaveConfig = leaveConfig ?? ~config,
@@ -60,7 +60,7 @@ class CombinedAnimation extends StatefulWidget {
   final CombinedAnimationController? controller;
 
   /// Callback to build a size transation to dismiss
-  final Widget? Function(Size?)? leaveBuilder;
+  final Widget? Function(Size?)? dismissBuilder;
 
   /// Callback when state inited
   final VoidCallback? onInit;
@@ -72,7 +72,7 @@ class CombinedAnimation extends StatefulWidget {
   final VoidCallback? onLeaved;
 
   /// Callback when size is Zero
-  final VoidCallback? onDissmiss;
+  final VoidCallback? onDismiss;
 
   /// The child will be animate
   final Widget child;
@@ -235,7 +235,7 @@ class _CombinedAnimationState extends State<CombinedAnimation>
       WidgetsBinding.instance.scheduleFrameCallback((timeStamp) {
         if (size == null) {
           state = AnimationState.dismiss;
-          widget.onDissmiss?.call();
+          widget.onDismiss?.call();
           widget.controller?._stateChanged();
         } else {
           size = null;
@@ -244,7 +244,7 @@ class _CombinedAnimationState extends State<CombinedAnimation>
             milliseconds: widget.dismissDuration.inMilliseconds + 16,
           )).then((value) {
             state = AnimationState.dismiss;
-            widget.onDissmiss?.call();
+            widget.onDismiss?.call();
             widget.controller?._stateChanged();
           });
         }
@@ -290,9 +290,9 @@ class _CombinedAnimationState extends State<CombinedAnimation>
   Widget build(BuildContext context) {
     if (state.index >= AnimationState.endLeave.index &&
         widget.autoSlide &&
-        (widget.leaveBuilder != null ||
+        (widget.dismissBuilder != null ||
             !(widget.config.hasSize || widget.leaveConfig.hasSize))) {
-      return widget.leaveBuilder?.call(size) ??
+      return widget.dismissBuilder?.call(size) ??
           AnimatedSize(
             duration: widget.dismissDuration,
             curve: widget.dismissCurve,

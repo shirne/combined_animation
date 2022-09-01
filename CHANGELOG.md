@@ -1,6 +1,10 @@
+## 0.3.0
+* change leaveBuilder to dismissBuilder
+* fix dissmiss to dismiss
+
 ## 0.2.0
 * Add Controller argument
-* Add leaveBuilder to build a dissmiss Widget
+* Add leaveBuilder to build a dismiss Widget
 * Add onInit callback
 * change onEntered remove controller argument
 * change onLeaved remove size argument

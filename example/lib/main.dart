@@ -179,7 +179,7 @@ class _AnimateItemState extends State<AnimateItem> {
                   isDissmissing = true;
                 });
               },
-              onDissmiss: widget.onDismiss,
+              onDismiss: widget.onDismiss,
               config: widget.animate,
               child: widget.child,
             ),
