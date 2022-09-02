@@ -243,10 +243,12 @@ class _CombinedAnimationState extends State<CombinedAnimation>
         } else {
           size = null;
           setState(() {});
-          Future.delayed(Duration(
-            milliseconds:
-                widget.dismissDuration.inMilliseconds + _minFrameDelay,
-          )).then((value) {
+          Future.delayed(
+            Duration(
+              milliseconds:
+                  widget.dismissDuration.inMilliseconds + _minFrameDelay,
+            ),
+          ).then((value) {
             state = AnimationState.dismiss;
             widget.controller?._stateChanged();
             widget.onDismiss?.call();

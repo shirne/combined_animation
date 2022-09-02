@@ -136,21 +136,25 @@ class AnimationConfig {
     this.duration,
     this.curve,
   })  : assert(
-            (startAlign != null && endAlign != null) ||
-                (startAlign == null && endAlign == null),
-            'Align animation need start and end non null'),
+          (startAlign != null && endAlign != null) ||
+              (startAlign == null && endAlign == null),
+          'Align animation need start and end non null',
+        ),
         assert(
-            (startOpacity != null && endOpacity != null) ||
-                (startOpacity == null && endOpacity == null),
-            'Opacity animation need start and end non null'),
+          (startOpacity != null && endOpacity != null) ||
+              (startOpacity == null && endOpacity == null),
+          'Opacity animation need start and end non null',
+        ),
         assert(
-            (startTransform != null && endTransform != null) ||
-                (startTransform == null && endTransform == null),
-            'Transform animation need start and end non null'),
+          (startTransform != null && endTransform != null) ||
+              (startTransform == null && endTransform == null),
+          'Transform animation need start and end non null',
+        ),
         assert(
-            (startSize != null && endSize != null) ||
-                (startSize == null && endSize == null),
-            'Transform animation need start and end non null');
+          (startSize != null && endSize != null) ||
+              (startSize == null && endSize == null),
+          'Transform animation need start and end non null',
+        );
 
   /// Quick create an enter config
   AnimationConfig.enter({
@@ -236,10 +240,12 @@ class AnimationConfig {
     }
     Matrix4? matrix4;
     if (hasMatrix) {
-      matrix4 = Matrix4.fromList(List.generate(
-        16,
-        (idx) => lerpDouble(startTransform![idx], endTransform![idx], value)!,
-      ));
+      matrix4 = Matrix4.fromList(
+        List.generate(
+          16,
+          (idx) => lerpDouble(startTransform![idx], endTransform![idx], value)!,
+        ),
+      );
     }
     double? opacity;
     if (hasOpacity) {
@@ -285,7 +291,7 @@ class AnimationConfig {
       );
 
   /// Combine two config
-  operator |(AnimationConfig other) {
+  AnimationConfig operator |(AnimationConfig other) {
     return AnimationConfig(
       startAlign: startAlign ?? other.startAlign,
       endAlign: endAlign ?? other.endAlign,
@@ -303,7 +309,7 @@ class AnimationConfig {
   }
 
   /// Flip config
-  operator ~() {
+  AnimationConfig operator ~() {
     return AnimationConfig(
       startAlign: endAlign,
       endAlign: startAlign,
