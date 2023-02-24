@@ -1,10 +1,10 @@
 name: combined_animation
 description: A combined animation widget, contains alignment, opacity, transform, size for enter and leave a widget.
-version: 0.3.1
+version: 0.3.2
 homepage: https://github.com/shirne/combined_animation
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.12.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -13,7 +13,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^2.0.1
 
 flutter:
 

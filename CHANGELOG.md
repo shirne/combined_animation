@@ -1,3 +1,6 @@
+## 0.3.2
+* envirment version
+
 ## 0.3.1
 * reordered callback & state trigger
 * fix zero dismiss delay

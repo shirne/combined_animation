@@ -114,7 +114,7 @@ class CombinedAnimationController extends ChangeNotifier {
   }
 
   void _stateChanged() {
-    notifyListeners();
+    if (_state != null) notifyListeners();
   }
 
   /// reset
