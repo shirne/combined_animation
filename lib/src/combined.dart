@@ -210,7 +210,9 @@ class _CombinedAnimationState extends State<CombinedAnimation>
       curve: widget.config.curve ?? Curves.easeIn,
     )
         .whenComplete(() {
-      size = context.size;
+      if (context.mounted) {
+        size = context.size;
+      }
       state = AnimationState.endEnter;
       widget.controller?._stateChanged();
       widget.onEntered?.call();
