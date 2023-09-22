@@ -1,3 +1,6 @@
+## 0.3.3
+* fix a context error
+
 ## 0.3.2
 * envirment version
 
