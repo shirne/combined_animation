@@ -100,11 +100,11 @@ class CombinedAnimationController extends ChangeNotifier {
   CombinedAnimationController();
 
   _CombinedAnimationState? _state;
+  bool _leaved = false;
 
   AnimationState get state => _state?.state ?? AnimationState.init;
 
-  bool get isEntered =>
-      (_state?.state ?? AnimationState.init) == AnimationState.endEnter;
+  bool get isEntered => _state?.state == AnimationState.endEnter;
 
   bool get isLeaved =>
       (_state?.state.index ?? 0) >= AnimationState.endLeave.index;
@@ -129,11 +129,18 @@ class CombinedAnimationController extends ChangeNotifier {
 
   /// start enter animation
   void enter({Duration? duration}) {
+    if (_leaved) {
+      if (_state != null) {
+        _leaved = false;
+      }
+      return;
+    }
     _state?.enter(duration: duration);
   }
 
   /// start leave animation
   void leave({Duration? duration}) {
+    if (_state == null) _leaved = true;
     _state?.leave(duration: duration);
   }
 
@@ -210,7 +217,7 @@ class _CombinedAnimationState extends State<CombinedAnimation>
       curve: widget.config.curve ?? Curves.easeIn,
     )
         .whenComplete(() {
-      if (context.mounted) {
+      if (mounted) {
         size = context.size;
       }
       state = AnimationState.endEnter;

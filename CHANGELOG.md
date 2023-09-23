@@ -1,3 +1,5 @@
+## 0.3.4
+* fix leave
 ## 0.3.3
 * fix a context error
 
