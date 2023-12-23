@@ -26,50 +26,77 @@ class AnimationSnapshot {
 
 /// Animation config
 class AnimationConfig {
+  /// Slide in from `start` [Alignment]
+  static AnimationConfig slideInFrom(Alignment start) => AnimationConfig(
+        startAlign: start,
+        endAlign: Alignment.center,
+        curve: Curves.easeOutQuad,
+      );
+
+  /// Slide out to `end` [Alignment]
+  static AnimationConfig slideOutTo(Alignment end) => AnimationConfig(
+        startAlign: Alignment.center,
+        endAlign: end,
+        curve: Curves.easeOutQuad,
+      );
+
   /// From out top to center
-  static const slideIn = AnimationConfig(
-    startAlign: Alignment(0, -3),
-    endAlign: Alignment(0, 0),
-    curve: Curves.easeOutQuad,
-  );
+  @Deprecated('use expandIn')
+  static AnimationConfig get slideIn => slideInFrom(const Alignment(0, -3));
 
   /// From center to out top
-  static const slideOut = AnimationConfig(
-    startAlign: Alignment(0, 0),
-    endAlign: Alignment(0, -3),
-    curve: Curves.easeOutQuad,
-  );
+  @Deprecated('use expandIn')
+  static AnimationConfig get slideOut => slideOutTo(const Alignment(0, -3));
 
-  static const slideDown = AnimationConfig(
+  @Deprecated('use expandIn')
+  static AnimationConfig get slideDown => expandIn;
+
+  /// Expand in
+  static const expandIn = AnimationConfig(
     startSize: Size.zero,
     endSize: Size.infinite,
     curve: Curves.easeOutQuad,
   );
 
-  /// From center to out top
-  static const slideUp = AnimationConfig(
+  @Deprecated('use shrinkOut')
+  static AnimationConfig get slideUp => shrinkOut;
+
+  /// Shrink out
+  static const shrinkOut = AnimationConfig(
     startSize: Size.infinite,
     endSize: Size.zero,
     curve: Curves.easeOutQuad,
   );
 
+  /// Slide and fade in from `start` [Alignment]
+  static AnimationConfig slideAndFadeInFrom(Alignment start) => AnimationConfig(
+        startAlign: start,
+        endAlign: Alignment.center,
+        startOpacity: 0,
+        endOpacity: 1,
+        curve: Curves.easeOutQuad,
+      );
+
   /// From out top to center with fade in
-  static const slideAndFadeIn = AnimationConfig(
-    startAlign: Alignment(0, -3),
-    endAlign: Alignment(0, 0),
-    startOpacity: 0,
-    endOpacity: 1,
-    curve: Curves.easeOutQuad,
-  );
+  @Deprecated('use slideAndFadeInFrom')
+  static AnimationConfig get slideAndFadeIn => slideAndFadeInFrom(
+        const Alignment(0, -3),
+      );
+
+  /// Slide and fade out from `end` [Alignment]
+  static AnimationConfig slideAndFadeOutTo(Alignment end) => AnimationConfig(
+        startAlign: Alignment.center,
+        endAlign: end,
+        startOpacity: 1,
+        endOpacity: 0,
+        curve: Curves.easeOutQuad,
+      );
 
   /// From center to out top with fade out
-  static const slideAndFadeOut = AnimationConfig(
-    startAlign: Alignment(0, 0),
-    endAlign: Alignment(0, -3),
-    startOpacity: 1,
-    endOpacity: 0,
-    curve: Curves.easeOutQuad,
-  );
+  @Deprecated('use slideAndFadeOutTo')
+  static AnimationConfig get slideAndFadeOut => slideAndFadeOutTo(
+        const Alignment(0, -3),
+      );
 
   /// Fade in
   static const fadeIn = AnimationConfig(

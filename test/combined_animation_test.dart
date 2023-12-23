@@ -15,21 +15,24 @@ void main() {
   });
 
   test('snapshot', () {
-    final AnimationConfig config = AnimationConfig.slideIn |
-        AnimationConfig.fadeIn |
-        AnimationConfig.zoomIn;
+    final AnimationConfig config =
+        AnimationConfig.slideInFrom(const Alignment(0, -3)) |
+            AnimationConfig.fadeIn |
+            AnimationConfig.zoomIn;
 
     final align = config.snapshot(0).alignment as Alignment?;
-    expect(align?.y, 1);
-    expect(align?.y, 0.5);
-    expect(align?.y, 0);
+    expect(align?.y, -3);
+    final align2 = config.snapshot(0.5).alignment as Alignment?;
+    expect(align2?.y, -1.5);
+    final align3 = config.snapshot(1).alignment as Alignment?;
+    expect(align3?.y, 0);
 
     expect(config.snapshot(0).opacity, 0);
     expect(config.snapshot(0.5).opacity, 0.5);
     expect(config.snapshot(1).opacity, 1);
 
-    expect(config.snapshot(0).transform?[0], 0.5);
-    expect(config.snapshot(0.5).transform?[0], 0.75);
+    expect(config.snapshot(0).transform?[0], 0);
+    expect(config.snapshot(0.5).transform?[0], 0.5);
     expect(config.snapshot(1).transform?[0], 1);
   });
 }

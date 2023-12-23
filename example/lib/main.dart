@@ -38,8 +38,14 @@ class _MyHomePageState extends State<MyHomePage> {
   final configs = <AnimationConfig>[];
   final keys = <ValueKey<int>>[];
   final configList = [
-    AnimationConfig.slideIn,
-    AnimationConfig.slideAndFadeIn,
+    AnimationConfig.slideInFrom(const Alignment(0, -2)),
+    AnimationConfig.slideInFrom(const Alignment(0, 2)),
+    AnimationConfig.slideInFrom(const Alignment(-2, 0)),
+    AnimationConfig.slideInFrom(const Alignment(2, 0)),
+    AnimationConfig.slideAndFadeInFrom(const Alignment(0, -2)),
+    AnimationConfig.slideAndFadeInFrom(const Alignment(0, 2)),
+    AnimationConfig.slideAndFadeInFrom(const Alignment(-2, 0)),
+    AnimationConfig.slideAndFadeInFrom(const Alignment(2, 0)),
     AnimationConfig.zoomIn,
     AnimationConfig.fadeIn,
     AnimationConfig.fadeAndZoomIn,
