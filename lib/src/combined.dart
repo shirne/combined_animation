@@ -282,7 +282,9 @@ class _CombinedAnimationState extends State<CombinedAnimation>
     if (widget.isControlled) return;
     if (widget.state == AnimationState.beginLeave) {
       if (state == AnimationState.endEnter) {
-        leave();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          leave();
+        });
       }
     } else if (widget.state == AnimationState.beginEnter) {
       enter();
