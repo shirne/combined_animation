@@ -251,7 +251,10 @@ class _CombinedAnimationState extends State<CombinedAnimation>
           widget.onDismiss?.call();
         } else {
           size = null;
-          setState(() {});
+          if (mounted) {
+            setState(() {});
+          }
+
           Future.delayed(
             Duration(
               milliseconds:
